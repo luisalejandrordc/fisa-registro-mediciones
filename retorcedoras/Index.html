@@ -1,0 +1,1162 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REGISTRO RPM - RETORCEDORAS</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      body {
+        background: #eef2f7;
+        padding: 25px;
+      }
+
+      .contenedor {
+        max-width: 1200px;
+        margin: auto;
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 3px 18px rgba(0, 0, 0, 0.18);
+      }
+
+      /*==========================
+      ENCABEZADO
+      ==========================*/
+      .encabezado {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        border-bottom: 3px solid #003b73;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+      }
+
+      .logo {
+        width: 135px;
+      }
+
+      .titulo {
+        flex: 1;
+      }
+
+      .titulo h1 {
+        font-size: 34px;
+        color: #003b73;
+        margin-bottom: 5px;
+      }
+
+      .titulo p {
+        color: #666;
+        font-size: 15px;
+      }
+
+      .fechaHora {
+        text-align: right;
+        font-weight: bold;
+        color: #003b73;
+        line-height: 1.6;
+      }
+
+      /*==========================
+      FILAS
+      ==========================*/
+      .fila2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .fila3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .fila4 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      /*==========================
+      CAMPOS
+      ==========================*/
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+      }
+
+      .requerido {
+        color: #d00000;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 10px;
+        font-size: 15px;
+        border: 1px solid #c5c5c5;
+        border-radius: 6px;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border: 2px solid #003b73;
+      }
+
+      .posicion.invalida {
+        border: 2px solid #d00000;
+        background: #fdecea;
+      }
+
+      .errorPosicion {
+        color: #d00000;
+        font-size: 11px;
+        font-weight: bold;
+        margin-top: 3px;
+        display: none;
+      }
+
+      .nombreOperador {
+        margin-top: 8px;
+        font-weight: bold;
+        color: #198754;
+        min-height: 24px;
+      }
+
+      /*==========================
+      AVISO
+      ==========================*/
+      .aviso {
+        margin: 25px 0;
+        background: #0d6efd;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .aviso span {
+        display: block;
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: normal;
+      }
+
+      /*==========================
+      TABLA
+      ==========================*/
+      .seccion {
+        margin-top: 25px;
+      }
+
+      .seccion h2 {
+        margin-bottom: 15px;
+        color: #003b73;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th {
+        background: #003b73;
+        color: white;
+        padding: 10px;
+      }
+
+      td {
+        border: 1px solid #ddd;
+        padding: 6px;
+      }
+
+      td input {
+        margin: 0;
+      }
+
+      /*==========================
+      LADO A / LADO B
+      (resalte visual para que los
+      supervisores identifiquen cada
+      bloque de un vistazo)
+      ==========================*/
+      .celda-lado {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 900;
+        vertical-align: middle;
+      }
+
+      .lado-a {
+        background: #d6e6fb;
+        color: #0b3d78;
+        border-right: 4px solid #0b3d78;
+      }
+
+      .lado-b {
+        background: #fde6c8;
+        color: #8a4b00;
+        border-right: 4px solid #8a4b00;
+      }
+
+      tr[data-lado="A"] td {
+        background: #f3f8fe;
+      }
+
+      tr[data-lado="B"] td {
+        background: #fffaf2;
+      }
+
+      tr.inicio-bloque td {
+        border-top: 3px solid #003b73;
+      }
+
+      /*==========================
+      ESTADO RPM
+      ==========================*/
+      .estado {
+        font-weight: bold;
+        text-align: center;
+        border-radius: 5px;
+        padding: 7px;
+      }
+
+      .dentro {
+        background: #d4edda;
+        color: #0f5132;
+      }
+
+      .fuera {
+        background: #f8d7da;
+        color: #842029;
+      }
+
+      /*==========================
+      TIPO DE MEDICIÓN
+      ==========================*/
+      .badge-tipo {
+        display: inline-block;
+        font-weight: bold;
+        font-size: 12px;
+        text-align: center;
+        border-radius: 5px;
+        padding: 6px 4px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .badge-huso {
+        background: #cfe2ff;
+        color: #084298;
+      }
+
+      .badge-cordel {
+        background: #d4edda;
+        color: #0f5132;
+      }
+
+      /*==========================
+      RESUMEN
+      ==========================*/
+      .resumen {
+        margin-top: 25px;
+      }
+
+      .cajaResumen {
+        width: 100%;
+        background: #f8f9fa;
+        border: 2px solid #003b73;
+        border-radius: 8px;
+        padding: 10px 15px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .total {
+        font-size: 42px;
+        margin-left: auto;
+        font-weight: bold;
+        color: #d40000;
+      }
+
+      /*==========================
+      BOTON
+      ==========================*/
+      .guardar {
+        margin-top: 25px;
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        background: #ff8c00;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .guardar:hover {
+        background: #e67e00;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="contenedor">
+      <!-- =========================
+         ENCABEZADO
+      ========================== -->
+      <div class="encabezado">
+        <img
+          class="logo"
+          src="https://i.postimg.cc/QxdhfRVk/logo.png"
+          alt="Logo"
+        />
+        <div class="titulo">
+          <h1>REGISTRO RPM - RETORCEDORAS</h1>
+          <p>Fibras Industriales S.A.</p>
+        </div>
+        <div class="fechaHora">
+          <div id="fecha"></div>
+          <div id="hora"></div>
+        </div>
+      </div>
+
+      <!-- =========================
+         DATOS GENERALES
+      ========================== -->
+      <div class="fila2">
+        <div>
+          <label> Código del operador <span class="requerido">*</span> </label>
+          <input
+            type="text"
+            id="codigo"
+            maxlength="5"
+            placeholder="Ingrese código"
+          />
+          <div id="nombreOperador" class="nombreOperador"></div>
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input type="text" id="fechaActual" readonly />
+        </div>
+      </div>
+
+      <div class="fila4">
+        <div>
+          <label> Máquina <span class="requerido">*</span> </label>
+          <select id="maquina">
+            <option value="">-- Seleccione --</option>
+            <option>DONGTAI 1</option>
+            <option>DONGTAI 2</option>
+            <option>DONGTAI 3</option>
+            <option>DONGTAI 4</option>
+            <option>DONGTAI 5</option>
+            <option>DONGTAI 6</option>
+            <option>DONGTAI 7</option>
+            <option>GALAN 1</option>
+            <option>GALAN 2</option>
+          </select>
+        </div>
+
+        <div>
+          <label> Material <span class="requerido">*</span> </label>
+          <select id="material">
+            <option value="">-- Seleccione --</option>
+            <option>NY</option>
+            <option>PES</option>
+            <option>CHYNEEMA</option>
+            <option>HYBRIDO</option>
+            <option>PE</option>
+            <option>DYNEEMA</option>
+          </select>
+        </div>
+
+        <div>
+          <label> Título <span class="requerido">*</span> </label>
+          <select id="tituloSelect">
+            <option value="">-- Seleccione máquina y material --</option>
+          </select>
+          <input
+            type="text"
+            id="tituloManual"
+            placeholder="Ingrese el título"
+            style="display: none; margin-top: 6px; text-transform: uppercase"
+            oninput="this.value = this.value.toUpperCase()"
+          />
+          <div
+            id="tituloInfo"
+            class="nombreOperador"
+            style="min-height: 18px; font-size: 13px"
+          ></div>
+        </div>
+
+        <div>
+          <label> RPM CONFIGURADO <span class="requerido">*</span> </label>
+          <input type="number" id="rpmConfigurado" placeholder="Ej.: 12000" />
+          <div
+            id="rpmSugerido"
+            class="nombreOperador"
+            style="min-height: 18px; font-size: 13px"
+          ></div>
+        </div>
+      </div>
+
+      <!-- =========================
+         AVISO
+      ========================== -->
+      <div class="aviso">
+        REALIZAR 2 MEDICIONES DE HUSO Y 2 DE CORDEL POR LADO (A Y B)
+        <span
+          >Las mediciones de HUSO se validan automáticamente. Las de CORDEL solo
+          se registran para análisis.</span
+        >
+      </div>
+
+      <!-- =========================================
+         REGISTRO DE MEDICIONES
+      ========================================== -->
+      <div class="seccion">
+        <h2>REGISTRO DE MEDICIONES</h2>
+        <table id="tablaRPM">
+          <thead>
+            <tr>
+              <th style="width: 6%">LADO</th>
+              <th style="width: 12%">TIPO</th>
+              <th style="width: 13%">POSICIÓN</th>
+              <th style="width: 13%">RPM REAL</th>
+              <th style="width: 16%">ESTADO RPM</th>
+              <th>OBSERVACIÓN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- LADO A -->
+            <tr data-tipo="HUSO" data-lado="A" class="inicio-bloque">
+              <td class="celda-lado lado-a" rowspan="4">A</td>
+              <td><span class="badge-tipo badge-huso">HUSO</span></td>
+              <td>
+                <input
+                  type="number"
+                  class="posicion"
+                  min="1"
+                  max="40"
+                  step="1"
+                  placeholder="Ej. 15"
+                />
+                <div class="errorPosicion">Debe ser 1-40</div>
+              </td>
+              <td><input type="number" class="rpmReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+            <tr data-tipo="HUSO" data-lado="A">
+              <td><span class="badge-tipo badge-huso">HUSO</span></td>
+              <td>
+                <input
+                  type="number"
+                  class="posicion"
+                  min="1"
+                  max="40"
+                  step="1"
+                />
+                <div class="errorPosicion">Debe ser 1-40</div>
+              </td>
+              <td><input type="number" class="rpmReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+            <tr data-tipo="CORDEL" data-lado="A">
+              <td><span class="badge-tipo badge-cordel">CORDEL</span></td>
+              <td>
+                <input
+                  type="number"
+                  class="posicion"
+                  min="1"
+                  max="40"
+                  step="1"
+                />
+                <div class="errorPosicion">Debe ser 1-40</div>
+              </td>
+              <td><input type="number" class="rpmReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+            <tr data-tipo="CORDEL" data-lado="A">
+              <td><span class="badge-tipo badge-cordel">CORDEL</span></td>
+              <td>
+                <input
+                  type="number"
+                  class="posicion"
+                  min="1"
+                  max="40"
+                  step="1"
+                />
+                <div class="errorPosicion">Debe ser 1-40</div>
+              </td>
+              <td><input type="number" class="rpmReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+            <!-- LADO B -->
+            <tr data-tipo="HUSO" data-lado="B" class="inicio-bloque">
+              <td class="celda-lado lado-b" rowspan="4">B</td>
+              <td><span class="badge-tipo badge-huso">HUSO</span></td>
+              <td>
+                <input
+                  type="number"
+                  class="posicion"
+                  min="1"
+                  max="40"
+                  step="1"
+                  placeholder="Ej. 15"
+                />
+                <div class="errorPosicion">Debe ser 1-40</div>
+              </td>
+              <td><input type="number" class="rpmReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+            <tr data-tipo="HUSO" data-lado="B">
+              <td><span class="badge-tipo badge-huso">HUSO</span></td>
+              <td>
+                <input
+                  type="number"
+                  class="posicion"
+                  min="1"
+                  max="40"
+                  step="1"
+                />
+                <div class="errorPosicion">Debe ser 1-40</div>
+              </td>
+              <td><input type="number" class="rpmReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+            <tr data-tipo="CORDEL" data-lado="B">
+              <td><span class="badge-tipo badge-cordel">CORDEL</span></td>
+              <td>
+                <input
+                  type="number"
+                  class="posicion"
+                  min="1"
+                  max="40"
+                  step="1"
+                />
+                <div class="errorPosicion">Debe ser 1-40</div>
+              </td>
+              <td><input type="number" class="rpmReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+            <tr data-tipo="CORDEL" data-lado="B">
+              <td><span class="badge-tipo badge-cordel">CORDEL</span></td>
+              <td>
+                <input
+                  type="number"
+                  class="posicion"
+                  min="1"
+                  max="40"
+                  step="1"
+                />
+                <div class="errorPosicion">Debe ser 1-40</div>
+              </td>
+              <td><input type="number" class="rpmReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- =========================================
+         RESUMEN
+      ========================================== -->
+      <div class="resumen">
+        <div class="cajaResumen">
+          <h3>TOTAL RPM FUERA DE RANGO</h3>
+          <div id="contador" class="total">0</div>
+        </div>
+      </div>
+
+      <button id="guardar" class="guardar">GUARDAR REGISTRO</button>
+    </div>
+
+    <script>
+      //==================================
+      // CONSTANTES
+      //==================================
+      const POSICION_MINIMA = 1;
+      const POSICION_MAXIMA = 40;
+      const MARGEN_TOLERANCIA_RPM = 0.05; // ±5%
+
+      let codigoActual = "";
+      let nombreActual = "";
+      const contador = document.getElementById("contador");
+      const cuerpoTabla = document.getElementById("tablaRPM");
+
+      //==================================
+      // FECHA Y HORA
+      //==================================
+      setInterval(function () {
+        const ahora = new Date();
+        const fecha = ahora.toLocaleDateString("es-PE");
+        const hora = ahora.toLocaleTimeString("es-PE");
+
+        if (document.getElementById("fecha")) {
+          document.getElementById("fecha").innerHTML = "📅 " + fecha;
+        }
+
+        if (document.getElementById("hora")) {
+          document.getElementById("hora").innerHTML = "🕒 " + hora;
+        }
+      }, 1000);
+
+      document.getElementById("fechaActual").value =
+        new Date().toLocaleDateString("es-PE");
+
+      //==================================
+      // VALIDAR OPERADOR
+      //==================================
+      document.getElementById("codigo").addEventListener("input", function () {
+        const codigo = this.value.trim();
+
+        if (codigo.length != 5) {
+          document.getElementById("nombreOperador").innerHTML = "";
+          codigoActual = "";
+          nombreActual = "";
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(function (r) {
+            if (r.valido) {
+              codigoActual = codigo;
+              nombreActual = r.nombre;
+              document.getElementById("nombreOperador").innerHTML =
+                "👷 Bienvenido <b>" + r.nombre + "</b>";
+            } else {
+              codigoActual = "";
+              nombreActual = "";
+              document.getElementById("nombreOperador").innerHTML =
+                "<span style='color:red'>Código no registrado.</span>";
+            }
+          })
+          .validarCodigo(codigo);
+      });
+
+      //==================================
+      // OBTENER TÍTULO ACTUAL
+      // (puede venir del dropdown o del
+      // campo manual, según el caso)
+      //==================================
+      function obtenerTituloActual() {
+        const select = document.getElementById("tituloSelect");
+        const manual = document.getElementById("tituloManual");
+        if (manual.style.display !== "none") {
+          return manual.value.trim();
+        }
+        return select.value;
+      }
+
+      //==================================
+      // CARGAR TÍTULOS DISPONIBLES
+      // (desde la hoja "DG RPM CONFI",
+      // según máquina y material elegidos)
+      //==================================
+      function cargarTitulosDisponibles() {
+        const maquina = document.getElementById("maquina").value;
+        const material = document.getElementById("material").value;
+        const select = document.getElementById("tituloSelect");
+        const manual = document.getElementById("tituloManual");
+        const info = document.getElementById("tituloInfo");
+
+        // Reinicia el campo de título cada vez que cambia máquina o material
+        select.innerHTML = "";
+        manual.value = "";
+        manual.style.display = "none";
+        select.style.display = "inline-block";
+        info.innerHTML = "";
+        document.getElementById("rpmSugerido").innerHTML = "";
+
+        if (maquina === "" || material === "") {
+          select.innerHTML =
+            '<option value="">-- Seleccione máquina y material --</option>';
+          return;
+        }
+
+        select.innerHTML = '<option value="">Cargando...</option>';
+
+        google.script.run
+          .withSuccessHandler(function (titulos) {
+            select.innerHTML = "";
+
+            if (titulos.length === 0) {
+              // No hay datos para esa máquina/material: se pasa a ingreso manual
+              select.style.display = "none";
+              manual.style.display = "block";
+              info.style.color = "#b45309";
+              info.innerHTML =
+                "⚠️ Sin datos registrados para esta combinación, ingrese el título manualmente.";
+              return;
+            }
+
+            select.innerHTML = '<option value="">-- Seleccione --</option>';
+            titulos.forEach(function (t) {
+              const opcion = document.createElement("option");
+              opcion.value = t;
+              opcion.textContent = t;
+              select.appendChild(opcion);
+            });
+
+            const otra = document.createElement("option");
+            otra.value = "__OTRO__";
+            otra.textContent = "OTRO (ingresar manualmente)";
+            select.appendChild(otra);
+          })
+          .obtenerTitulos(maquina, material);
+      }
+
+      document
+        .getElementById("maquina")
+        .addEventListener("change", cargarTitulosDisponibles);
+
+      document
+        .getElementById("material")
+        .addEventListener("change", cargarTitulosDisponibles);
+
+      document
+        .getElementById("tituloSelect")
+        .addEventListener("change", function () {
+          const select = document.getElementById("tituloSelect");
+          const manual = document.getElementById("tituloManual");
+
+          if (select.value === "__OTRO__") {
+            select.style.display = "none";
+            manual.style.display = "block";
+            manual.value = "";
+            manual.focus();
+          } else {
+            intentarAutocompletarRPM();
+          }
+        });
+
+      document
+        .getElementById("tituloManual")
+        .addEventListener("blur", intentarAutocompletarRPM);
+
+      //==================================
+      // AUTOCOMPLETAR RPM CONFIGURADO
+      // (desde la hoja "DG RPM CONFI")
+      //==================================
+      let ultimoRpmAuto = "";
+
+      function intentarAutocompletarRPM() {
+        const maquina = document.getElementById("maquina").value;
+        const material = document.getElementById("material").value;
+        const titulo = obtenerTituloActual();
+        const rpmSugerido = document.getElementById("rpmSugerido");
+
+        if (maquina === "" || material === "" || titulo === "") {
+          rpmSugerido.innerHTML = "";
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(function (r) {
+            const campoRPM = document.getElementById("rpmConfigurado");
+
+            if (r.encontrado) {
+              // Siempre sobrescribe el valor, incluso si el
+              // operario ya lo había editado manualmente
+              campoRPM.value = r.rpm;
+              ultimoRpmAuto = String(r.rpm);
+              actualizarEstadoRPM();
+              actualizarRangoAceptable();
+            } else {
+              ultimoRpmAuto = "";
+              rpmSugerido.style.color = "#b45309";
+              rpmSugerido.innerHTML =
+                "⚠️ No hay valor registrado, ingréselo manualmente.";
+            }
+          })
+          .obtenerRPM(maquina, material, titulo);
+      }
+
+      //==================================
+      // MOSTRAR RANGO ACEPTABLE (±5%)
+      //==================================
+      function actualizarRangoAceptable() {
+        const rpmSugerido = document.getElementById("rpmSugerido");
+        const rpmConfigurado = Number(
+          document.getElementById("rpmConfigurado").value,
+        );
+
+        if (rpmConfigurado <= 0) {
+          rpmSugerido.innerHTML = "";
+          return;
+        }
+
+        const minimo = Math.round(rpmConfigurado * (1 - MARGEN_TOLERANCIA_RPM));
+        const maximo = Math.round(rpmConfigurado * (1 + MARGEN_TOLERANCIA_RPM));
+
+        rpmSugerido.style.color = "#198754";
+        rpmSugerido.innerHTML =
+          "Rango aceptable: " +
+          minimo +
+          " – " +
+          maximo +
+          " RPM (±" +
+          MARGEN_TOLERANCIA_RPM * 100 +
+          "%)";
+      }
+
+      //==================================
+      // CALCULAR ESTADO RPM
+      // (solo aplica a mediciones de HUSO;
+      // CORDEL únicamente se registra)
+      //==================================
+      function actualizarEstadoRPM() {
+        const rpmConfigurado = Number(
+          document.getElementById("rpmConfigurado").value,
+        );
+        if (rpmConfigurado <= 0) return;
+
+        const minimo = rpmConfigurado * (1 - MARGEN_TOLERANCIA_RPM);
+        const maximo = rpmConfigurado * (1 + MARGEN_TOLERANCIA_RPM);
+        let fueraRango = 0;
+
+        document
+          .querySelectorAll("#tablaRPM tbody tr")
+          .forEach(function (fila) {
+            const estado = fila.querySelector(".estado");
+
+            // El CORDEL no tiene rango de referencia todavía:
+            // solo se registra el valor, sin validar.
+            if (fila.dataset.tipo !== "HUSO") {
+              estado.className = "estado";
+              estado.innerHTML = "";
+              delete estado.dataset.estado;
+              return;
+            }
+
+            const rpmInput = fila.querySelector(".rpmReal");
+            const rpm = Number(rpmInput.value);
+
+            estado.className = "estado";
+            estado.innerHTML = "";
+
+            if (rpmInput.value == "") {
+              return;
+            }
+
+            if (rpm >= minimo && rpm <= maximo) {
+              estado.dataset.estado = "DENTRO DE RANGO";
+              estado.innerHTML = "🟢 DENTRO";
+            } else {
+              estado.dataset.estado = "FUERA DE RANGO";
+              estado.innerHTML = "🔴 FUERA";
+              fueraRango++;
+            }
+          });
+
+        contador.innerHTML = fueraRango;
+      }
+
+      //==================================
+      // EVENTOS
+      //==================================
+      document
+        .getElementById("rpmConfigurado")
+        .addEventListener("input", actualizarEstadoRPM);
+
+      document
+        .getElementById("rpmConfigurado")
+        .addEventListener("input", actualizarRangoAceptable);
+
+      document.querySelectorAll(".rpmReal").forEach(function (campo) {
+        campo.addEventListener("input", actualizarEstadoRPM);
+      });
+
+      /**
+       * Valida en tiempo real un campo de posición y marca
+       * visualmente si el valor está fuera del rango permitido.
+       * Un campo vacío no se marca como error todavía (se exige
+       * recién al guardar).
+       */
+      function validarCampoPosicion(campo) {
+        const mensajeError =
+          campo.parentElement.querySelector(".errorPosicion");
+        const valor = campo.value.trim();
+
+        if (valor === "") {
+          campo.classList.remove("invalida");
+          mensajeError.style.display = "none";
+          return;
+        }
+
+        const numero = Number(valor);
+        const esValido =
+          Number.isInteger(numero) &&
+          numero >= POSICION_MINIMA &&
+          numero <= POSICION_MAXIMA;
+
+        campo.classList.toggle("invalida", !esValido);
+        mensajeError.style.display = esValido ? "none" : "block";
+      }
+
+      document.querySelectorAll(".posicion").forEach(function (campo) {
+        campo.addEventListener("input", function () {
+          validarCampoPosicion(campo);
+        });
+      });
+
+      //==================================
+      // VALIDAR DATOS
+      //==================================
+      function validarFormulario() {
+        if (codigoActual == "") {
+          alert("Ingrese un código de operador válido.");
+          return false;
+        }
+        if (document.getElementById("maquina").value == "") {
+          alert("Seleccione una máquina.");
+          return false;
+        }
+        if (document.getElementById("material").value == "") {
+          alert("Seleccione un material.");
+          return false;
+        }
+        if (obtenerTituloActual() == "") {
+          alert("Seleccione o ingrese el título.");
+          return false;
+        }
+        if (document.getElementById("rpmConfigurado").value == "") {
+          alert("Ingrese la RPM Configurada.");
+          return false;
+        }
+        return true;
+      }
+
+      /**
+       * Valida que la posición de cada registro sea un número
+       * entero dentro del rango permitido (1 a 40).
+       */
+      function posicionesValidas(registros) {
+        return registros.every(function (registro) {
+          const posicion = Number(registro.posicion);
+          return (
+            Number.isInteger(posicion) &&
+            posicion >= POSICION_MINIMA &&
+            posicion <= POSICION_MAXIMA
+          );
+        });
+      }
+
+      //==================================
+      // OBTENER REGISTROS
+      //==================================
+      function obtenerRegistros() {
+        let registros = [];
+
+        document
+          .querySelectorAll("#tablaRPM tbody tr")
+          .forEach(function (fila) {
+            const lado = fila.dataset.lado;
+            const tipo = fila.dataset.tipo;
+            const posicion = fila.querySelector(".posicion").value.trim();
+            const rpm = fila.querySelector(".rpmReal").value.trim();
+            const estado = fila.querySelector(".estado").dataset.estado || "";
+            const observacion = fila.querySelector(".observacion").value.trim();
+
+            if (posicion != "" && rpm != "") {
+              registros.push({
+                lado: lado,
+                tipo: tipo,
+                posicion: posicion,
+                rpm: rpm,
+                estado: estado,
+                observacion: observacion,
+              });
+            }
+          });
+        return registros;
+      }
+
+      //==================================
+      // BOTÓN GUARDAR
+      //==================================
+      document.getElementById("guardar").addEventListener("click", function () {
+        if (!validarFormulario()) {
+          return;
+        }
+
+        const registros = obtenerRegistros();
+        if (registros.length != 8) {
+          alert(
+            "Debe registrar las 8 posiciones (4 del lado A y 4 del lado B).",
+          );
+          return;
+        }
+
+        if (!posicionesValidas(registros)) {
+          document.querySelectorAll(".posicion").forEach(function (campo) {
+            validarCampoPosicion(campo);
+          });
+
+          const primerCampoInvalido =
+            document.querySelector(".posicion.invalida");
+          if (primerCampoInvalido) {
+            primerCampoInvalido.focus();
+          }
+
+          alert(
+            "La posición debe ser un número entero entre " +
+              POSICION_MINIMA +
+              " y " +
+              POSICION_MAXIMA +
+              ".",
+          );
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(function (respuesta) {
+            alert(respuesta.mensaje);
+            if (respuesta.ok) {
+              limpiarFormulario();
+            }
+          })
+          .withFailureHandler(function (error) {
+            alert("ERROR:\n\n" + error.message);
+            console.log(error);
+          })
+          .guardarRegistro({
+            codigo: codigoActual,
+            nombre: nombreActual,
+            maquina: document.getElementById("maquina").value,
+            material: document.getElementById("material").value,
+            titulo: obtenerTituloActual(),
+            rpmConfigurado: document.getElementById("rpmConfigurado").value,
+            registros: registros,
+          });
+      });
+
+      //==================================
+      // LIMPIAR FORMULARIO
+      // (después de guardar, conserva
+      // el código del operario)
+      //==================================
+      function limpiarFormulario() {
+        // Máquina, Material y Título
+        document.getElementById("maquina").value = "";
+        document.getElementById("material").value = "";
+        document.getElementById("tituloSelect").innerHTML =
+          '<option value="">-- Seleccione máquina y material --</option>';
+        document.getElementById("tituloSelect").style.display = "inline-block";
+        document.getElementById("tituloManual").value = "";
+        document.getElementById("tituloManual").style.display = "none";
+        document.getElementById("tituloInfo").innerHTML = "";
+
+        // RPM Configurado
+        document.getElementById("rpmConfigurado").value = "";
+        document.getElementById("rpmSugerido").innerHTML = "";
+        ultimoRpmAuto = "";
+
+        // Contador de posiciones fuera de rango
+        contador.innerHTML = "0";
+
+        // Tabla de 8 posiciones (lado A y lado B)
+        document
+          .querySelectorAll("#tablaRPM tbody tr")
+          .forEach(function (fila) {
+            const campoPosicion = fila.querySelector(".posicion");
+            campoPosicion.value = "";
+            campoPosicion.classList.remove("invalida");
+            fila.querySelector(".errorPosicion").style.display = "none";
+
+            fila.querySelector(".rpmReal").value = "";
+            fila.querySelector(".observacion").value = "";
+            const estado = fila.querySelector(".estado");
+            estado.innerHTML = "";
+            estado.removeAttribute("data-estado");
+            estado.className = "estado";
+          });
+      }
+    </script>
+  </body>
+</html>
