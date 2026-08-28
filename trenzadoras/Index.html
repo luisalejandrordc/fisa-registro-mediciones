@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REGISTRO CRUCES - TRENZADORAS</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      body {
+        background: #eef2f7;
+        padding: 25px;
+      }
+
+      .contenedor {
+        max-width: 1100px;
+        margin: auto;
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 3px 18px rgba(0, 0, 0, 0.18);
+      }
+
+      /*==========================
+      ENCABEZADO
+      ==========================*/
+      .encabezado {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        border-bottom: 3px solid #003b73;
+        padding-bottom: 15px;
+        margin-bottom: 35px;
+      }
+
+      .logo {
+        width: 135px;
+      }
+
+      .titulo {
+        flex: 1;
+      }
+
+      .titulo h1 {
+        font-size: 30px;
+        color: #003b73;
+        margin-bottom: 5px;
+      }
+
+      .titulo p {
+        color: #666;
+        font-size: 15px;
+      }
+
+      .fechaHora {
+        text-align: right;
+        font-weight: bold;
+        color: #003b73;
+        line-height: 1.6;
+      }
+
+      /*==========================
+      FILAS
+      ==========================*/
+      .rows-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        column-gap: 18px;
+        row-gap: 18px;
+      }
+      .row {
+        display: contents;
+      }
+      .row1 > div:first-child {
+        grid-column: 1;
+      }
+      .row1 > div:last-child {
+        grid-column: 2 / 4; /* between grid lines 2 and 4 */
+      }
+      .row2 > div:nth-child(1) {
+        grid-column: 1;
+      }
+      .row2 > div:nth-child(2) {
+        grid-column: 2;
+      }
+      .row2 > div:nth-child(3) {
+        grid-column: 3;
+      }
+
+      /*==========================
+      CAMPOS
+      ==========================*/
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 10px;
+        font-size: 15px;
+        border: 1px solid #c5c5c5;
+        border-radius: 6px;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border: 2px solid #003b73;
+      }
+
+      input[readonly] {
+        background: #f3f5f8;
+        color: #333;
+      }
+
+      .statusMessage {
+        margin-top: 6px;
+        margin-left: 2px;
+        font-size: 13px;
+        font-weight: bold;
+        min-height: 18px;
+      }
+
+      .statusMessage:empty {
+        display: none;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: -2px;
+        margin-right: 4px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /*==========================
+      AVISO
+      ==========================*/
+      .aviso {
+        margin: 35px 0;
+        background: #0d6efd;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+      }
+
+      .aviso span {
+        display: block;
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: normal;
+      }
+
+      /*==========================
+      TABLA
+      ==========================*/
+      .seccion {
+        margin-top: 25px;
+      }
+
+      .seccion h2 {
+        margin-bottom: 15px;
+        color: #003b73;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th {
+        background: #003b73;
+        color: white;
+        padding: 10px;
+      }
+
+      td {
+        border: 1px solid #ddd;
+        padding: 6px;
+        vertical-align: top;
+      }
+
+      td input,
+      td select {
+        margin: 0;
+      }
+
+      .errorFila {
+        color: #d00000;
+        font-size: 11px;
+        font-weight: bold;
+        margin-top: 3px;
+        margin-left: 2px;
+        display: none;
+      }
+
+      /*==========================
+      ESTADO CRUCE
+      ==========================*/
+      .estado {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: bold;
+        text-align: center;
+        border-radius: 5px;
+        padding: 7px;
+      }
+
+      .dentro {
+        background: #d4edda;
+        color: #0f5132;
+      }
+
+      .fuera {
+        background: #f8d7da;
+        color: #842029;
+      }
+
+      /*==========================
+      RESUMEN
+      ==========================*/
+      .resumen {
+        margin-top: 25px;
+      }
+
+      .cajaResumen {
+        width: 100%;
+        background: #f8f9fa;
+        border: 2px solid #003b73;
+        border-radius: 8px;
+        padding: 10px 15px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .total {
+        font-size: 42px;
+        margin-left: auto;
+        font-weight: bold;
+        color: #d40000;
+      }
+
+      /*==========================
+      BOTON
+      ==========================*/
+      .guardar {
+        margin-top: 25px;
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        background: #ff8c00;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .guardar:hover {
+        background: #e67e00;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="contenedor">
+      <!-- =========================
+         ENCABEZADO
+      ========================== -->
+      <div class="encabezado">
+        <img
+          class="logo"
+          src="https://i.postimg.cc/QxdhfRVk/logo.png"
+          alt="Logo"
+        />
+        <div class="titulo">
+          <h1>REGISTRO CRUCES - TRENZADORAS</h1>
+          <p>Fibras Industriales S.A.</p>
+        </div>
+        <div class="fechaHora">
+          <div id="fecha"></div>
+          <div id="hora"></div>
+        </div>
+      </div>
+
+      <!-- =========================
+         DATOS GENERALES
+      ========================== -->
+      <div class="rows-container">
+        <div class="row row1">
+          <div>
+            <label> Código del supervisor </label>
+            <input
+              type="text"
+              id="codigo"
+              maxlength="5"
+              placeholder="Ingrese código"
+            />
+            <div id="supervisorStatus" class="statusMessage"></div>
+          </div>
+          <div>
+            <label>Apellidos y nombres </label>
+            <input type="text" id="nombreSupervisor" readonly />
+          </div>
+        </div>
+
+        <div class="row row2">
+          <div>
+            <label> Orden de trabajo </label>
+            <input
+              type="text"
+              id="ordenTrabajo"
+              placeholder="Ej.: OT00040109"
+              style="text-transform: uppercase"
+              oninput="this.value = this.value.toUpperCase()"
+            />
+            <div id="ordenStatus" class="statusMessage"></div>
+          </div>
+
+          <div>
+            <label>Nombre de producto</label>
+            <input type="text" id="nombreProducto" readonly />
+          </div>
+
+          <div>
+            <label>Cruces STD</label>
+            <input type="text" id="crucesSTD" readonly />
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================
+         AVISO
+      ========================== -->
+      <div class="aviso">
+        REGISTRA LA OT Y CARGARÁ EN AUTOMÁTICO EL NOMBRE DEL PRODUCTO Y CRUCES
+        STD
+        <span
+          >Selecciona 3 trenzadoras de filas diferentes que estén trabajando el
+          mismo material y título.</span
+        >
+      </div>
+
+      <!-- =========================================
+         REGISTRO DE MEDICIONES
+      ========================================== -->
+      <div class="seccion">
+        <h2>REGISTRO DE MEDICIONES</h2>
+        <table id="tablaCruces">
+          <thead>
+            <tr>
+              <th style="width: 18%">FILA</th>
+              <th style="width: 18%">NÚMERO</th>
+              <th style="width: 16%">CRUCE</th>
+              <th style="width: 16%">ESTADO</th>
+              <th>OBSERVACIÓN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <select class="filaSelect">
+                  <option value="">Cargando...</option>
+                </select>
+                <div class="errorFila">Fila repetida</div>
+              </td>
+              <td>
+                <select class="numeroSelect" disabled>
+                  <option value="">-- Seleccione fila --</option>
+                </select>
+              </td>
+              <td><input type="number" class="cruceReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <select class="filaSelect">
+                  <option value="">Cargando...</option>
+                </select>
+                <div class="errorFila">Fila repetida</div>
+              </td>
+              <td>
+                <select class="numeroSelect" disabled>
+                  <option value="">-- Seleccione fila --</option>
+                </select>
+              </td>
+              <td><input type="number" class="cruceReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <select class="filaSelect">
+                  <option value="">Cargando...</option>
+                </select>
+                <div class="errorFila">Fila repetida</div>
+              </td>
+              <td>
+                <select class="numeroSelect" disabled>
+                  <option value="">-- Seleccione fila --</option>
+                </select>
+              </td>
+              <td><input type="number" class="cruceReal" /></td>
+              <td><div class="estado"></div></td>
+              <td>
+                <input
+                  type="text"
+                  class="observacion"
+                  style="text-transform: uppercase"
+                  oninput="this.value = this.value.toUpperCase()"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- =========================================
+         RESUMEN
+      ========================================== -->
+      <div class="resumen">
+        <div class="cajaResumen">
+          <h3>TOTAL CRUCES FUERA DE RANGO</h3>
+          <div id="contador" class="total">0</div>
+        </div>
+      </div>
+
+      <button id="guardar" class="guardar">GUARDAR REGISTRO</button>
+    </div>
+
+    <script>
+      //==================================
+      // CONSTANTES
+      //==================================
+      const CANTIDAD_MEDICIONES = 3;
+      const MARGEN_TOLERANCIA_CRUCE = 0.05; // ±5%
+
+      let codigoActual = "";
+      let nombreActual = "";
+      let crucesSTDActual = "";
+      let nombreProductoActual = "";
+      const contador = document.getElementById("contador");
+
+      //==================================
+      // MATCH TABLE INPUT AND SELECT HEIGHTS (MAXIMUM)
+      //==================================
+      function igualarAlturaInicial() {
+        document
+          .querySelectorAll("#tablaCruces tbody tr")
+          .forEach(function (filaTabla) {
+            const filaSelect = filaTabla.querySelector(".filaSelect");
+            const numeroSelect = filaTabla.querySelector(".numeroSelect");
+            const cruceInput = filaTabla.querySelector(".cruceReal");
+
+            const alturaMaxima = Math.max(
+              filaSelect.getBoundingClientRect().height,
+              numeroSelect.getBoundingClientRect().height,
+              cruceInput.getBoundingClientRect().height,
+            );
+
+            filaSelect.style.height = `${alturaMaxima}px`;
+            numeroSelect.style.height = `${alturaMaxima}px`;
+            cruceInput.style.height = `${alturaMaxima}px`;
+          });
+      }
+
+      igualarAlturaInicial();
+
+      //==================================
+      // FECHA Y HORA
+      //==================================
+      setInterval(function () {
+        const ahora = new Date();
+        const fecha = ahora.toLocaleDateString("es-PE");
+        const hora = ahora.toLocaleTimeString("es-PE");
+
+        if (document.getElementById("fecha")) {
+          document.getElementById("fecha").innerHTML = fecha;
+        }
+
+        if (document.getElementById("hora")) {
+          document.getElementById("hora").innerHTML = hora;
+        }
+      }, 1000);
+
+      // document.getElementById("fechaActual").value =
+      //   new Date().toLocaleDateString("es-PE");
+
+      //==================================
+      // VALIDAR OPERADOR (SUPERVISOR)
+      //==================================
+      document.getElementById("codigo").addEventListener("input", function () {
+        const codigo = this.value.trim();
+        const nombreSupervisor = document.getElementById("nombreSupervisor");
+        const supervisorStatus = document.getElementById("supervisorStatus");
+
+        if (codigo.length != 5) {
+          nombreSupervisor.value = "";
+          supervisorStatus.value = "";
+          codigoActual = "";
+          nombreActual = "";
+          return;
+        }
+
+        supervisorStatus.style.color = "#666";
+        supervisorStatus.innerHTML =
+          '<span class="spinner"></span> Buscando supervisor...';
+
+        google.script.run
+          .withSuccessHandler(function (r) {
+            if (r.valido) {
+              codigoActual = codigo;
+              nombreActual = r.nombre;
+              nombreSupervisor.value = r.nombre;
+              supervisorStatus.style.color = "#198754";
+              supervisorStatus.innerHTML = "✓ Supervisor encontrado";
+            } else {
+              codigoActual = "";
+              nombreActual = "";
+              nombreSupervisor.value = "";
+              supervisorStatus.style.color = "#d00000";
+              supervisorStatus.innerHTML = "✕ Código no registrado";
+            }
+          })
+          .validarCodigo(codigo);
+      });
+
+      //==================================
+      // CARGAR DATOS DE LA OT
+      //==================================
+      function cargarDatosOT() {
+        const campoOT = document.getElementById("ordenTrabajo");
+        const ordenTrabajo = campoOT.value.trim();
+        const ordenStatus = document.getElementById("ordenStatus");
+        const campoNombreProducto = document.getElementById("nombreProducto");
+        const campoCrucesSTD = document.getElementById("crucesSTD");
+
+        if (ordenTrabajo === "") {
+          ordenStatus.innerHTML = "";
+          campoNombreProducto.value = "";
+          campoCrucesSTD.value = "";
+          crucesSTDActual = "";
+          nombreProductoActual = "";
+          actualizarEstados();
+          return;
+        }
+        ordenStatus.style.color = "#666";
+        ordenStatus.innerHTML = '<span class="spinner"></span> Buscando OT...';
+
+        google.script.run
+          .withSuccessHandler(function (r) {
+            if (r.encontrado) {
+              nombreProductoActual = r.nombreProducto;
+              crucesSTDActual = r.crucesSTD;
+              campoNombreProducto.value = r.nombreProducto;
+              campoCrucesSTD.value = r.crucesSTD;
+              ordenStatus.style.color = "#198754";
+              ordenStatus.innerHTML = "✓ OT encontrada";
+            } else {
+              nombreProductoActual = "";
+              crucesSTDActual = "";
+              campoNombreProducto.value = "";
+              campoCrucesSTD.value = "";
+              ordenStatus.style.color = "#d00000";
+              ordenStatus.innerHTML = "✕ OT no encontrada";
+            }
+            actualizarEstados();
+          })
+          .obtenerDatosOT(ordenTrabajo);
+      }
+
+      document
+        .getElementById("ordenTrabajo")
+        .addEventListener("blur", cargarDatosOT);
+
+      document
+        .getElementById("ordenTrabajo")
+        .addEventListener("keydown", function (evento) {
+          if (evento.key === "Enter") {
+            evento.preventDefault();
+            cargarDatosOT();
+          }
+        });
+
+      //==================================
+      // CARGAR FILAS DISPONIBLES
+      // (desde la hoja "TRENZADORAS")
+      //==================================
+      function cargarFilasDisponibles() {
+        google.script.run
+          .withSuccessHandler(function (filas) {
+            document.querySelectorAll(".filaSelect").forEach(function (select) {
+              select.innerHTML = '<option value="">-- Seleccione --</option>';
+              filas.forEach(function (fila) {
+                const opcion = document.createElement("option");
+                opcion.value = fila;
+                opcion.textContent = fila;
+                select.appendChild(opcion);
+              });
+            });
+          })
+          .obtenerFilas();
+      }
+
+      cargarFilasDisponibles();
+
+      //==================================
+      // CARGAR N° DE TRENZADORA
+      // (dependiente de la fila elegida
+      // en esa misma fila de la tabla)
+      //==================================
+      function cargarNumerosDisponibles(filaTabla) {
+        const filaSelect = filaTabla.querySelector(".filaSelect");
+        const numeroSelect = filaTabla.querySelector(".numeroSelect");
+        const fila = filaSelect.value;
+
+        numeroSelect.innerHTML = "";
+
+        if (fila === "") {
+          numeroSelect.innerHTML =
+            '<option value="">-- Seleccione fila --</option>';
+          numeroSelect.disabled = true;
+          return;
+        }
+
+        numeroSelect.disabled = true;
+        numeroSelect.innerHTML = '<option value="">Cargando...</option>';
+
+        google.script.run
+          .withSuccessHandler(function (numeros) {
+            numeroSelect.innerHTML =
+              '<option value="">-- Seleccione --</option>';
+            numeros.forEach(function (numero) {
+              const opcion = document.createElement("option");
+              opcion.value = numero;
+              opcion.textContent = numero;
+              numeroSelect.appendChild(opcion);
+            });
+            numeroSelect.disabled = false;
+          })
+          .obtenerNumeros(fila);
+      }
+
+      document.querySelectorAll(".filaSelect").forEach(function (select) {
+        select.addEventListener("change", function () {
+          const filaTabla = select.closest("tr");
+          cargarNumerosDisponibles(filaTabla);
+          validarFilasRepetidas();
+        });
+      });
+
+      //==================================
+      // VALIDAR FILAS REPETIDAS
+      // (las 3 mediciones deben ser de
+      // filas diferentes)
+      //==================================
+      function validarFilasRepetidas() {
+        const selects = document.querySelectorAll(".filaSelect");
+        const valores = Array.from(selects)
+          .map((s) => s.value)
+          .filter((v) => v !== "");
+
+        const repetidos = valores.filter((v, i) => valores.indexOf(v) !== i);
+
+        let hayRepetidos = false;
+
+        selects.forEach(function (select) {
+          const mensaje = select.closest("td").querySelector(".errorFila");
+          const esRepetido =
+            select.value !== "" && repetidos.includes(select.value);
+          mensaje.style.display = esRepetido ? "block" : "none";
+          if (esRepetido) hayRepetidos = true;
+        });
+
+        return !hayRepetidos;
+      }
+
+      //==================================
+      // CALCULAR ESTADO DEL CRUCE
+      // (±5% respecto a Cruces STD)
+      //==================================
+      function actualizarEstados() {
+        const std = Number(crucesSTDActual);
+        let fueraRango = 0;
+
+        if (!std || std <= 0) {
+          document
+            .querySelectorAll("#tablaCruces .estado")
+            .forEach(function (estado) {
+              estado.className = "estado";
+              estado.innerHTML = "";
+              delete estado.dataset.estado;
+            });
+          contador.innerHTML = "0";
+          return;
+        }
+
+        const minimo = std * (1 - MARGEN_TOLERANCIA_CRUCE);
+        const maximo = std * (1 + MARGEN_TOLERANCIA_CRUCE);
+
+        document
+          .querySelectorAll("#tablaCruces tbody tr")
+          .forEach(function (filaTabla) {
+            const estado = filaTabla.querySelector(".estado");
+            const cruceInput = filaTabla.querySelector(".cruceReal");
+            const cruce = Number(cruceInput.value);
+            const select = filaTabla.querySelector(".filaSelect");
+
+            estado.style.height = `${select.offsetHeight}px`;
+            estado.className = "estado";
+            estado.innerHTML = "";
+
+            if (cruceInput.value === "") {
+              delete estado.dataset.estado;
+              return;
+            }
+
+            if (cruce >= minimo && cruce <= maximo) {
+              estado.classList.add("estado", "dentro");
+              estado.dataset.estado = "DENTRO DE RANGO";
+              estado.innerHTML = "DENTRO";
+              // estado.innerHTML = "🟢 DENTRO";
+            } else {
+              estado.classList.add("estado", "fuera");
+              estado.dataset.estado = "FUERA DE RANGO";
+              estado.innerHTML = "FUERA";
+              // estado.innerHTML = "🔴 FUERA";
+              fueraRango++;
+            }
+          });
+
+        contador.innerHTML = fueraRango;
+      }
+
+      document.querySelectorAll(".cruceReal").forEach(function (campo) {
+        campo.addEventListener("input", actualizarEstados);
+      });
+
+      //==================================
+      // VALIDAR DATOS GENERALES
+      //==================================
+      function validarFormulario() {
+        if (codigoActual == "") {
+          alert("Ingrese un código de operador válido.");
+          return false;
+        }
+        if (document.getElementById("ordenTrabajo").value.trim() == "") {
+          alert("Ingrese la orden de trabajo.");
+          return false;
+        }
+        if (crucesSTDActual === "" || nombreProductoActual === "") {
+          alert(
+            "La orden de trabajo no se encontró. Verifique el número de OT.",
+          );
+          return false;
+        }
+        return true;
+      }
+
+      //==================================
+      // OBTENER REGISTROS
+      //==================================
+      function obtenerRegistros() {
+        let registros = [];
+
+        document
+          .querySelectorAll("#tablaCruces tbody tr")
+          .forEach(function (filaTabla) {
+            const fila = filaTabla.querySelector(".filaSelect").value;
+            const numero = filaTabla.querySelector(".numeroSelect").value;
+            const cruceReal = filaTabla
+              .querySelector(".cruceReal")
+              .value.trim();
+            const observacion = filaTabla
+              .querySelector(".observacion")
+              .value.trim();
+
+            registros.push({
+              fila: fila,
+              numero: numero,
+              cruceReal: cruceReal,
+              observacion: observacion,
+            });
+          });
+
+        return registros;
+      }
+
+      /**
+       * Valida que las 3 mediciones tengan fila, número y cruce real
+       * completos, y que las 3 filas sean diferentes entre sí.
+       */
+      function registrosCompletosYValidos(registros) {
+        const completos = registros.every(
+          (r) => r.fila !== "" && r.numero !== "" && r.cruceReal !== "",
+        );
+        if (!completos) return false;
+
+        const filasUsadas = new Set(registros.map((r) => r.fila));
+        return filasUsadas.size === CANTIDAD_MEDICIONES;
+      }
+
+      //==================================
+      // BOTÓN GUARDAR
+      //==================================
+      document.getElementById("guardar").addEventListener("click", function () {
+        if (!validarFormulario()) {
+          return;
+        }
+
+        const registros = obtenerRegistros();
+
+        if (!validarFilasRepetidas()) {
+          alert("Las 3 trenzadoras deben ser de filas diferentes.");
+          return;
+        }
+
+        if (!registrosCompletosYValidos(registros)) {
+          alert(
+            "Complete Fila, N° Trenzadora y Cruce Real en las " +
+              CANTIDAD_MEDICIONES +
+              " mediciones, con filas diferentes entre sí.",
+          );
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(function (respuesta) {
+            alert(respuesta.mensaje);
+            if (respuesta.ok) {
+              limpiarFormulario();
+            }
+          })
+          .withFailureHandler(function (error) {
+            alert("ERROR:\n\n" + error.message);
+            console.log(error);
+          })
+          .guardarRegistro({
+            codigo: codigoActual,
+            nombre: nombreActual,
+            ordenTrabajo: document.getElementById("ordenTrabajo").value.trim(),
+            nombreProducto: nombreProductoActual,
+            crucesSTD: crucesSTDActual,
+            registros: registros,
+          });
+      });
+
+      //==================================
+      // LIMPIAR FORMULARIO
+      // (después de guardar, conserva
+      // el código del operario)
+      //==================================
+      function limpiarFormulario() {
+        // Orden de trabajo, producto y cruces STD
+        document.getElementById("ordenTrabajo").value = "";
+        document.getElementById("nombreProducto").value = "";
+        document.getElementById("crucesSTD").value = "";
+        document.getElementById("ordenStatus").innerHTML = "";
+        crucesSTDActual = "";
+        nombreProductoActual = "";
+
+        // Contador de cruces fuera de rango
+        contador.innerHTML = "0";
+
+        // Tabla de 3 mediciones
+        document
+          .querySelectorAll("#tablaCruces tbody tr")
+          .forEach(function (filaTabla) {
+            filaTabla.querySelector(".filaSelect").value = "";
+            filaTabla.querySelector(".numeroSelect").innerHTML =
+              '<option value="">-- Seleccione fila --</option>';
+            filaTabla.querySelector(".numeroSelect").disabled = true;
+            filaTabla.querySelector(".cruceReal").value = "";
+            filaTabla.querySelector(".observacion").value = "";
+            filaTabla.querySelector(".errorFila").style.display = "none";
+
+            const estado = filaTabla.querySelector(".estado");
+            estado.innerHTML = "";
+            estado.className = "estado";
+            delete estado.dataset.estado;
+          });
+      }
+    </script>
+  </body>
+</html>
