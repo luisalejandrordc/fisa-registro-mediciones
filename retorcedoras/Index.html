@@ -414,6 +414,11 @@
           <label> RPM CONFIGURADO <span class="requerido">*</span> </label>
           <input type="number" id="rpmConfigurado" placeholder="Ej.: 12000" />
           <div
+            id="rpmPromedioInfo"
+            class="nombreOperador"
+            style="min-height: 16px; font-size: 12px; color: #555"
+          ></div>
+          <div
             id="rpmSugerido"
             class="nombreOperador"
             style="min-height: 18px; font-size: 13px"
@@ -440,7 +445,7 @@
         <table id="tablaRPM">
           <thead>
             <tr>
-              <th style="width: 6%">LADO</th>
+              <th style="width: 6%; margin-left: 1px solid #0b3d78">LADO</th>
               <th style="width: 12%">TIPO</th>
               <th style="width: 13%">POSICIÓN</th>
               <th style="width: 13%">RPM REAL</th>
@@ -669,6 +674,20 @@
       const contador = document.getElementById("contador");
       const cuerpoTabla = document.getElementById("tablaRPM");
 
+      // Máquinas cuyo rango aceptable se calcula sobre el promedio
+      // histórico de RPM Real en vez del RPM Configurado. Se obtiene
+      // del backend para no duplicar la lista aquí.
+      let maquinasRangoPorPromedio = [];
+      google.script.run
+        .withSuccessHandler(function (lista) {
+          maquinasRangoPorPromedio = lista || [];
+        })
+        .obtenerMaquinasRangoPorPromedio();
+
+      // Último promedio histórico obtenido del servidor para la
+      // combinación máquina + material + título actual.
+      let rpmPromedioActual = null;
+
       //==================================
       // FECHA Y HORA
       //==================================
@@ -752,6 +771,8 @@
         select.style.display = "inline-block";
         info.innerHTML = "";
         document.getElementById("rpmSugerido").innerHTML = "";
+        document.getElementById("rpmPromedioInfo").innerHTML = "";
+        rpmPromedioActual = null;
 
         if (maquina === "" || material === "") {
           select.innerHTML =
@@ -855,6 +876,79 @@
             }
           })
           .obtenerRPM(maquina, material, titulo);
+
+        actualizarRPMPromedio(maquina, material, titulo);
+      }
+
+      //==================================
+      // RPM PROMEDIO HISTÓRICO
+      // (referencia informativa para todas
+      // las máquinas; para DONGTAI 4 y 5
+      // además define el rango aceptable)
+      //==================================
+      function actualizarRPMPromedio(maquina, material, titulo) {
+        const infoDiv = document.getElementById("rpmPromedioInfo");
+
+        if (maquina === "" || material === "" || titulo === "") {
+          infoDiv.innerHTML = "";
+          rpmPromedioActual = null;
+          actualizarRangoAceptable();
+          actualizarEstadoRPM();
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(function (r) {
+            const esMaquinaPromedio =
+              maquinasRangoPorPromedio.indexOf(maquina) !== -1;
+
+            if (r.encontrado) {
+              rpmPromedioActual = r;
+              infoDiv.style.color = esMaquinaPromedio ? "#0b5ed7" : "#555";
+              infoDiv.innerHTML =
+                "📊 RPM Promedio histórico: <b>" +
+                r.promedio +
+                "</b> RPM (" +
+                r.cantidadRegistros +
+                " mediciones)" +
+                (esMaquinaPromedio ? " — usado para el rango" : "");
+            } else {
+              rpmPromedioActual = null;
+              infoDiv.innerHTML = esMaquinaPromedio
+                ? "📊 Sin historial aún; el rango usará el RPM Configurado."
+                : "";
+            }
+
+            actualizarRangoAceptable();
+            actualizarEstadoRPM();
+          })
+          .obtenerRPMPromedio(maquina, material, titulo);
+      }
+
+      /**
+       * Determina el RPM sobre el cual se calcula el ±5% para el
+       * rango aceptable: el promedio histórico para DONGTAI 4 y 5
+       * (si hay datos), o el RPM Configurado para el resto de casos.
+       */
+      function obtenerRPMBaseParaRango() {
+        const maquina = document.getElementById("maquina").value;
+        const rpmConfigurado = Number(
+          document.getElementById("rpmConfigurado").value,
+        );
+        const esMaquinaPromedio =
+          maquinasRangoPorPromedio.indexOf(maquina) !== -1;
+
+        if (
+          esMaquinaPromedio &&
+          rpmPromedioActual &&
+          rpmPromedioActual.encontrado
+        ) {
+          return {
+            valor: rpmPromedioActual.promedio,
+            origen: "promedio",
+          };
+        }
+        return { valor: rpmConfigurado, origen: "configurado" };
       }
 
       //==================================
@@ -871,8 +965,15 @@
           return;
         }
 
-        const minimo = Math.round(rpmConfigurado * (1 - MARGEN_TOLERANCIA_RPM));
-        const maximo = Math.round(rpmConfigurado * (1 + MARGEN_TOLERANCIA_RPM));
+        const base = obtenerRPMBaseParaRango();
+
+        const minimo = Math.round(base.valor * (1 - MARGEN_TOLERANCIA_RPM));
+        const maximo = Math.round(base.valor * (1 + MARGEN_TOLERANCIA_RPM));
+
+        const etiquetaBase =
+          base.origen === "promedio"
+            ? "sobre el RPM Promedio"
+            : "sobre el RPM Configurado";
 
         rpmSugerido.style.color = "#198754";
         rpmSugerido.innerHTML =
@@ -882,7 +983,9 @@
           maximo +
           " RPM (±" +
           MARGEN_TOLERANCIA_RPM * 100 +
-          "%)";
+          "%, " +
+          etiquetaBase +
+          ")";
       }
 
       //==================================
@@ -896,8 +999,11 @@
         );
         if (rpmConfigurado <= 0) return;
 
-        const minimo = rpmConfigurado * (1 - MARGEN_TOLERANCIA_RPM);
-        const maximo = rpmConfigurado * (1 + MARGEN_TOLERANCIA_RPM);
+        const base = obtenerRPMBaseParaRango().valor;
+        if (!base || base <= 0) return;
+
+        const minimo = base * (1 - MARGEN_TOLERANCIA_RPM);
+        const maximo = base * (1 + MARGEN_TOLERANCIA_RPM);
         let fueraRango = 0;
 
         document
@@ -1135,7 +1241,9 @@
         // RPM Configurado
         document.getElementById("rpmConfigurado").value = "";
         document.getElementById("rpmSugerido").innerHTML = "";
+        document.getElementById("rpmPromedioInfo").innerHTML = "";
         ultimoRpmAuto = "";
+        rpmPromedioActual = null;
 
         // Contador de posiciones fuera de rango
         contador.innerHTML = "0";
