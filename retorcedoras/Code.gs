@@ -329,24 +329,6 @@ function posicionEsValida(registro) {
 }
 
 /**
- * Calcula el estado (dentro/fuera de rango) que se guardará para una
- * medición. Solo aplica a HUSO; CORDEL se registra sin evaluar.
- * El estado ya fue calculado en el cliente (usando el RPM Configurado
- * o el RPM Promedio, según la máquina) al momento de ingresar el RPM
- * Real, por lo que aquí solo se traduce el valor recibido; no se
- * recalcula para evitar trabajo redundante en el servidor.
- * @param {{tipo: string, estado: string}} registro
- * @return {string}
- */
-function calcularEstadoFinal(registro) {
-  const esHuso = String(registro.tipo).toUpperCase() === "HUSO";
-  if (!esHuso) return "";
-
-  const fueraDeRango = String(registro.estado).toUpperCase().includes("FUERA");
-  return fueraDeRango ? "FUERA DE RANGO" : "DENTRO DE RANGO";
-}
-
-/**
  * Calcula la observación final a guardar. Para HUSO, si viene vacía
  * se completa con "OK"; para CORDEL se respeta el valor tal cual.
  * @param {{tipo: string, observacion: string}} registro
@@ -438,7 +420,7 @@ function guardarRegistro(datos) {
     String(registro.tipo).toUpperCase(),
     registro.posicion,
     Number(registro.rpm),
-    calcularEstadoFinal(registro),
+    registro.estado,
     calcularObservacionFinal(registro),
   ]);
 
