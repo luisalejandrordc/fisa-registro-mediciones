@@ -12,13 +12,6 @@ const NOMBRE_HOJA_REFERENCIA = "RPM DE REFERENCIA";
 const POSICION_MINIMA = 1;
 const POSICION_MAXIMA = 40;
 
-// Máquinas en las que el rango aceptable NO se calcula sobre el RPM
-// Configurado, sino sobre el promedio histórico de RPM Real (HUSO)
-// registrado para la misma combinación de máquina + material + título.
-// (El propio cálculo del ±5% se realiza en el cliente; esta lista solo
-// se expone al formulario para que sepa qué máquinas usan el promedio.)
-const MAQUINAS_RANGO_POR_PROMEDIO = ["DONGTAI 4", "DONGTAI 5"];
-
 const OPERADORES = {
   "00486": "UNTIVEROS RAMIREZ EDGAR",
   "00406": "ABAD ARROYO FRANK GERSON",
@@ -220,19 +213,6 @@ function obtenerTitulos(maquina, material) {
   const titulosUnicos = Array.from(new Set(titulos)).sort((a, b) => a - b);
 
   return titulosUnicos.map(String);
-}
-
-//----------------------------------
-// MÁQUINAS QUE USAN PROMEDIO PARA EL RANGO
-//----------------------------------
-/**
- * Expone al formulario la lista de máquinas cuyo rango aceptable se
- * calcula sobre el promedio histórico de RPM Real en lugar del RPM
- * Configurado, para no duplicar la lista en el cliente.
- * @return {string[]}
- */
-function obtenerMaquinasRangoPorPromedio() {
-  return MAQUINAS_RANGO_POR_PROMEDIO;
 }
 
 //----------------------------------

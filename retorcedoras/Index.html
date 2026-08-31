@@ -72,8 +72,8 @@
       .rows-container {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        column-gap: 18px;
-        row-gap: 18px;
+        column-gap: 24px;
+        row-gap: 24px;
       }
 
       .row {
@@ -167,13 +167,6 @@
         }
       }
 
-      .campo-calculado {
-        background: #eef1f5;
-        color: #003b73;
-        font-weight: bold;
-        cursor: not-allowed;
-      }
-
       .posicion.invalida {
         border: 2px solid #d00000;
         background: #fdecea;
@@ -191,7 +184,7 @@
       AVISO
       ==========================*/
       .aviso {
-        margin: 25px 0;
+        margin: 30px 0;
         background: #0d6efd;
         padding: 15px;
         border-radius: 8px;
@@ -460,7 +453,7 @@
             />
             <div
               id="tituloInfo"
-              class="nombreOperador"
+              class="statusMessage"
               style="min-height: 18px; font-size: 13px"
             ></div>
           </div>
@@ -472,7 +465,7 @@
             <input type="number" id="rpmConfigurado" placeholder="Ej.: 12000" />
             <div
               id="rpmConfiguradoInfo"
-              class="nombreOperador"
+              class="statusMessage"
               style="min-height: 16px; font-size: 12px"
             ></div>
           </div>
@@ -482,7 +475,7 @@
             <input type="text" id="rpmPromedio" readonly placeholder="—" />
             <div
               id="rpmPromedioInfo"
-              class="nombreOperador"
+              class="statusMessage"
               style="min-height: 16px; font-size: 12px; color: #555"
             ></div>
           </div>
@@ -492,7 +485,7 @@
             <input type="text" id="rangoAceptable" readonly placeholder="—" />
             <div
               id="rangoAceptableInfo"
-              class="nombreOperador"
+              class="statusMessage"
               style="min-height: 16px; font-size: 12px"
             ></div>
           </div>
@@ -741,25 +734,33 @@
       const POSICION_MINIMA = 1;
       const POSICION_MAXIMA = 40;
       const MARGEN_TOLERANCIA_RPM = 0.05; // ±5%
+      const MAQUINAS_RANGO_POR_PROMEDIO = ["DONGTAI 4", "DONGTAI 5"];
 
       let codigoActual = "";
       let nombreActual = "";
       const contador = document.getElementById("contador");
       const cuerpoTabla = document.getElementById("tablaRPM");
 
-      // Máquinas cuyo rango aceptable se calcula sobre el promedio
-      // histórico de RPM Real en vez del RPM Configurado. Se obtiene
-      // del backend para no duplicar la lista aquí.
-      let maquinasRangoPorPromedio = [];
-      google.script.run
-        .withSuccessHandler(function (lista) {
-          maquinasRangoPorPromedio = lista || [];
-        })
-        .obtenerMaquinasRangoPorPromedio();
-
       // Último promedio histórico obtenido del servidor para la
       // combinación máquina + material + título actual.
       let rpmPromedioActual = null;
+
+      //==================================
+      // MATCH TABLE INPUT HEIGHT
+      //==================================
+      function igualarAlturaInicial() {
+        document
+          .querySelectorAll("#tablaRPM tbody tr")
+          .forEach(function (filaTabla) {
+            const filaInput = filaTabla.querySelector(".posicion");
+            const filaTipo = filaTabla.querySelector(".badge-tipo");
+            const inputHeight = filaInput.getBoundingClientRect().height;
+            console.log(inputHeight);
+            filaTipo.style.height = `${inputHeight}px`;
+          });
+      }
+
+      igualarAlturaInicial();
 
       //==================================
       // FECHA Y HORA
@@ -770,25 +771,25 @@
         const hora = ahora.toLocaleTimeString("es-PE");
 
         if (document.getElementById("fecha")) {
-          document.getElementById("fecha").innerHTML = "📅 " + fecha;
+          document.getElementById("fecha").innerHTML = fecha;
         }
 
         if (document.getElementById("hora")) {
-          document.getElementById("hora").innerHTML = "🕒 " + hora;
+          document.getElementById("hora").innerHTML = hora;
         }
       }, 1000);
 
-      document.getElementById("fechaActual").value =
-        new Date().toLocaleDateString("es-PE");
-
       //==================================
-      // VALIDAR OPERADOR
+      // VALIDAR OPERADOR (OPERADOR)
       //==================================
       document.getElementById("codigo").addEventListener("input", function () {
         const codigo = this.value.trim();
+        const nombreOperador = document.getElementById("nombreOperador");
+        const operadorStatus = document.getElementById("operadorStatus");
 
         if (codigo.length != 5) {
-          document.getElementById("nombreOperador").innerHTML = "";
+          nombreOperador.value = "";
+          operadorStatus.value = "";
           codigoActual = "";
           nombreActual = "";
           return;
@@ -799,13 +800,15 @@
             if (r.valido) {
               codigoActual = codigo;
               nombreActual = r.nombre;
-              document.getElementById("nombreOperador").innerHTML =
-                "👷 Bienvenido <b>" + r.nombre + "</b>";
+              nombreOperador.value = r.nombre;
+              operadorStatus.style.color = "#198754";
+              supervisorStatus.innerHTML = "✓ Supervisor encontrado";
             } else {
               codigoActual = "";
               nombreActual = "";
-              document.getElementById("nombreOperador").innerHTML =
-                "<span style='color:red'>Código no registrado.</span>";
+              nombreOperador.value = "";
+              operadorStatus.style.color = "#d00000";
+              operadorStatus.innerHTML = "✕ Código no registrado";
             }
           })
           .validarCodigo(codigo);
@@ -827,18 +830,17 @@
 
       //==================================
       // CARGAR TÍTULOS DISPONIBLES
-      // (desde la hoja "DG RPM CONFI",
-      // según máquina y material elegidos)
+      // (según máquina y material elegidos)
       //==================================
       function cargarTitulosDisponibles() {
         const maquina = document.getElementById("maquina").value;
         const material = document.getElementById("material").value;
-        const select = document.getElementById("tituloSelect");
+        const titulo = document.getElementById("tituloSelect");
         const manual = document.getElementById("tituloManual");
         const info = document.getElementById("tituloInfo");
 
         // Reinicia el campo de título cada vez que cambia máquina o material
-        select.innerHTML = "";
+        titulo.innerHTML = "";
         manual.value = "";
         manual.style.display = "none";
         select.style.display = "inline-block";
@@ -1008,7 +1010,7 @@
           document.getElementById("rpmConfigurado").value,
         );
         const esMaquinaPromedio =
-          maquinasRangoPorPromedio.indexOf(maquina) !== -1;
+          MAQUINAS_RANGO_POR_PROMEDIO.indexOf(maquina) !== -1;
 
         if (
           esMaquinaPromedio &&
