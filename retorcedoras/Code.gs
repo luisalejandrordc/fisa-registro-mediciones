@@ -245,7 +245,7 @@ function obtenerTitulos(maquina, material) {
  * @param {string} titulo
  * @return {{encontrado: boolean, promedio?: number, cantidadRegistros?: number}}
  */
-function calcularPromedioRPMReal(maquina, material, titulo) {
+function obtenerRPMPromedio(maquina, material, titulo) {
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
     NOMBRE_HOJA_REGISTROS,
   );
@@ -266,8 +266,7 @@ function calcularPromedioRPMReal(maquina, material, titulo) {
     rpmReal: encabezados.indexOf("RPM Real"),
   };
 
-  // Si la hoja no tiene el formato esperado, no se puede calcular.
-  if (Object.keys(idx).some((clave) => idx[clave] === -1)) {
+  if (Object.keys(idx).some((key) => idx[key] === -1)) {
     return { encontrado: false };
   }
 
@@ -310,20 +309,6 @@ function calcularPromedioRPMReal(maquina, material, titulo) {
   };
 }
 
-/**
- * Punto de entrada para el formulario: obtiene el promedio histórico
- * de RPM Real para la combinación indicada. Se usa tanto para mostrar
- * la referencia en pantalla como, para DONGTAI 4 y 5, para calcular
- * el rango aceptable real.
- * @param {string} maquina
- * @param {string} material
- * @param {string} titulo
- * @return {{encontrado: boolean, promedio?: number, cantidadRegistros?: number}}
- */
-function obtenerRPMPromedio(maquina, material, titulo) {
-  return calcularPromedioRPMReal(maquina, material, titulo);
-}
-
 //----------------------------------
 // VALIDAR REGISTRO
 //----------------------------------
@@ -363,8 +348,7 @@ function calcularEstadoFinal(registro) {
 
 /**
  * Calcula la observación final a guardar. Para HUSO, si viene vacía
- * se completa con "OK"; para CORDEL se respeta el valor tal cual
- * (puede quedar en blanco).
+ * se completa con "OK"; para CORDEL se respeta el valor tal cual.
  * @param {{tipo: string, observacion: string}} registro
  * @return {string}
  */

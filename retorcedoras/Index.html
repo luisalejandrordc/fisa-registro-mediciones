@@ -754,8 +754,10 @@
           .forEach(function (filaTabla) {
             const filaInput = filaTabla.querySelector(".posicion");
             const filaTipo = filaTabla.querySelector(".badge-tipo");
+            const filaEstado = filaTabla.querySelector(".estado");
             const inputHeight = filaInput.getBoundingClientRect().height;
             filaTipo.style.height = `${inputHeight}px`;
+            filaEstado.style.height = `${inputHeight}px`;
           });
       }
 
@@ -779,7 +781,7 @@
       }, 1000);
 
       //==================================
-      // VALIDAR OPERADOR (OPERADOR)
+      // VALIDAR OPERADOR
       //==================================
       document.getElementById("codigo").addEventListener("input", function () {
         const codigo = this.value.trim();
@@ -794,6 +796,10 @@
           return;
         }
 
+        operadorStatus.style.color = "#666";
+        operadorStatus.innerHTML =
+          '<span class="spinner"></span> Buscando operador...';
+
         google.script.run
           .withSuccessHandler(function (r) {
             if (r.valido) {
@@ -801,7 +807,7 @@
               nombreActual = r.nombre;
               nombreOperador.value = r.nombre;
               operadorStatus.style.color = "#198754";
-              supervisorStatus.innerHTML = "✓ Supervisor encontrado";
+              operadorStatus.innerHTML = "✓ Operador encontrado";
             } else {
               codigoActual = "";
               nombreActual = "";
@@ -853,7 +859,7 @@
         rpmPromedioActual = null;
 
         if (maquina === "" || material === "") {
-          titulo.innerHTML =
+          tituloSelect.innerHTML =
             '<option value="">-- Seleccione máquina y material --</option>';
           return;
         }
@@ -870,7 +876,7 @@
               tituloManual.style.display = "block";
               tituloInfo.style.color = "#b45309";
               tituloInfo.innerHTML =
-                "Combinación no registrada, ingrese el título manualmente.";
+                "Combinación no registrada, ingreso manual habilitado.";
               return;
             }
 
@@ -951,7 +957,7 @@
               ultimoRpmAuto = "";
               infoConfigurado.style.color = "#b45309";
               infoConfigurado.innerHTML =
-                "⚠️ No hay valor registrado, ingréselo manualmente.";
+                "Combinación no registrada, ingreso manual habilitado.";
             }
           })
           .obtenerRPM(maquina, material, titulo);
@@ -985,7 +991,7 @@
               campoPromedio.value = r.promedio;
               infoDiv.style.color = "#555";
               infoDiv.innerHTML =
-                "📊 " + r.cantidadRegistros + " mediciones históricas";
+                r.cantidadRegistros + " mediciones históricas";
             } else {
               rpmPromedioActual = null;
               campoPromedio.value = "";
@@ -1101,11 +1107,13 @@
             }
 
             if (rpm >= minimo && rpm <= maximo) {
+              estado.classList.add("estado", "dentro");
               estado.dataset.estado = "DENTRO DE RANGO";
-              estado.innerHTML = "🟢 DENTRO";
+              estado.innerHTML = "DENTRO";
             } else {
+              estado.classList.add("estado", "fuera");
               estado.dataset.estado = "FUERA DE RANGO";
-              estado.innerHTML = "🔴 FUERA";
+              estado.innerHTML = "FUERA";
               fueraRango++;
             }
           });
@@ -1242,6 +1250,7 @@
         }
 
         const registros = obtenerRegistros();
+        console.log(registros);
         if (registros.length != 8) {
           alert(
             "Debe registrar las 8 posiciones (4 del lado A y 4 del lado B).",
