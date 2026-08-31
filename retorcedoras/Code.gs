@@ -12,13 +12,11 @@ const NOMBRE_HOJA_REFERENCIA = "RPM DE REFERENCIA";
 const POSICION_MINIMA = 1;
 const POSICION_MAXIMA = 40;
 
-// Margen de tolerancia (±5%) usado para determinar si una medición
-// de HUSO está dentro o fuera de rango.
-const MARGEN_TOLERANCIA_RPM = 0.05;
-
 // Máquinas en las que el rango aceptable NO se calcula sobre el RPM
 // Configurado, sino sobre el promedio histórico de RPM Real (HUSO)
 // registrado para la misma combinación de máquina + material + título.
+// (El propio cálculo del ±5% se realiza en el cliente; esta lista solo
+// se expone al formulario para que sepa qué máquinas usan el promedio.)
 const MAQUINAS_RANGO_POR_PROMEDIO = ["DONGTAI 4", "DONGTAI 5"];
 
 const OPERADORES = {
@@ -251,6 +249,12 @@ function obtenerMaquinasRangoPorPromedio() {
  * @return {{encontrado: boolean, promedio?: number, cantidadRegistros?: number}}
  */
 function calcularPromedioRPMReal(maquina, material, titulo) {
+  console.log("Calcular Promedio Real");
+  console.log({
+    maquina: maquina,
+    material: material,
+    titulo: titulo,
+  });
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
     NOMBRE_HOJA_REGISTROS,
   );
@@ -286,6 +290,13 @@ function calcularPromedioRPMReal(maquina, material, titulo) {
     const filaMaterial = String(fila[idx.material]).trim().toUpperCase();
     const filaTitulo = String(Number(fila[idx.titulo]));
     const filaTipo = String(fila[idx.tipo]).trim().toUpperCase();
+
+    console.log({
+      "fila maquina": filaMaquina,
+      "fila material": filaMaterial,
+      "fila titulo": filaTitulo,
+      "fila tipo": filaTipo,
+    });
 
     if (
       filaMaquina !== maquina ||
@@ -350,31 +361,20 @@ function posicionEsValida(registro) {
 
 /**
  * Calcula el estado (dentro/fuera de rango) que se guardará para una
- * medición, evaluando el RPM Real contra el ±5% de una base de rango.
- * Solo aplica a HUSO; CORDEL se registra sin evaluar.
- * La base de rango es el RPM Configurado para la mayoría de máquinas,
- * o el promedio histórico redondeado para DONGTAI 4 y 5 (ver
- * MAQUINAS_RANGO_POR_PROMEDIO en guardarRegistro).
- * @param {{tipo: string, rpm: string|number}} registro
- * @param {number} rpmBaseRango RPM sobre el cual se calcula el ±5%.
+ * medición. Solo aplica a HUSO; CORDEL se registra sin evaluar.
+ * El estado ya fue calculado en el cliente (usando el RPM Configurado
+ * o el RPM Promedio, según la máquina) al momento de ingresar el RPM
+ * Real, por lo que aquí solo se traduce el valor recibido; no se
+ * recalcula para evitar trabajo redundante en el servidor.
+ * @param {{tipo: string, estado: string}} registro
  * @return {string}
  */
-function calcularEstadoFinal(registro, rpmBaseRango) {
+function calcularEstadoFinal(registro) {
   const esHuso = String(registro.tipo).toUpperCase() === "HUSO";
   if (!esHuso) return "";
 
-  const rpmReal = Number(registro.rpm);
-  const base = Number(rpmBaseRango);
-
-  if (!base || isNaN(base) || isNaN(rpmReal)) return "";
-
-  const margen = base * MARGEN_TOLERANCIA_RPM;
-  const minimo = base - margen;
-  const maximo = base + margen;
-
-  return rpmReal >= minimo && rpmReal <= maximo
-    ? "DENTRO DE RANGO"
-    : "FUERA DE RANGO";
+  const fueraDeRango = String(registro.estado).toUpperCase().includes("FUERA");
+  return fueraDeRango ? "FUERA DE RANGO" : "DENTRO DE RANGO";
 }
 
 /**
@@ -444,27 +444,16 @@ function guardarRegistro(datos) {
 
   const info = obtenerFechaHora();
 
-  // El promedio histórico se calcula siempre (para registrarlo como
-  // dato de referencia), pero solo se usa como base del rango
-  // aceptable en las máquinas listadas en MAQUINAS_RANGO_POR_PROMEDIO.
-  // Si no hay historial disponible, se usa el RPM Configurado.
-  const maquinaNormalizada = String(datos.maquina).trim().toUpperCase();
-  const usaPromedioParaRango =
-    MAQUINAS_RANGO_POR_PROMEDIO.indexOf(maquinaNormalizada) !== -1;
-  const resultadoPromedio = calcularPromedioRPMReal(
-    datos.maquina,
-    datos.material,
-    datos.titulo,
-  );
-
-  const rpmBaseRango =
-    usaPromedioParaRango && resultadoPromedio.encontrado
-      ? resultadoPromedio.promedio
-      : Number(datos.rpmConfigurado);
-
-  const rpmPromedioParaGuardar = resultadoPromedio.encontrado
-    ? resultadoPromedio.promedio
-    : "";
+  // El RPM Promedio ya fue calculado y mostrado en el formulario al
+  // seleccionar máquina + material + título; se guarda tal cual lo
+  // envía el cliente para no recalcularlo (y potencialmente obtener
+  // un valor distinto) en este momento.
+  const rpmPromedioParaGuardar =
+    datos.rpmPromedio !== undefined &&
+    datos.rpmPromedio !== null &&
+    String(datos.rpmPromedio).trim() !== ""
+      ? Number(datos.rpmPromedio)
+      : "";
 
   const filas = datos.registros.map((registro) => [
     info.fecha,
@@ -481,7 +470,7 @@ function guardarRegistro(datos) {
     String(registro.tipo).toUpperCase(),
     registro.posicion,
     Number(registro.rpm),
-    calcularEstadoFinal(registro, rpmBaseRango),
+    calcularEstadoFinal(registro),
     calcularObservacionFinal(registro),
   ]);
 
@@ -490,4 +479,8 @@ function guardarRegistro(datos) {
     .setValues(filas);
 
   return { ok: true, mensaje: "Registro guardado correctamente." };
+}
+
+function testing() {
+  calcularPromedioRPMReal("DONGTAI 1", "NY", "12");
 }
