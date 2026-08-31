@@ -755,7 +755,6 @@
             const filaInput = filaTabla.querySelector(".posicion");
             const filaTipo = filaTabla.querySelector(".badge-tipo");
             const inputHeight = filaInput.getBoundingClientRect().height;
-            console.log(inputHeight);
             filaTipo.style.height = `${inputHeight}px`;
           });
       }
@@ -835,16 +834,17 @@
       function cargarTitulosDisponibles() {
         const maquina = document.getElementById("maquina").value;
         const material = document.getElementById("material").value;
-        const titulo = document.getElementById("tituloSelect");
-        const manual = document.getElementById("tituloManual");
-        const info = document.getElementById("tituloInfo");
+        const tituloSelect = document.getElementById("tituloSelect");
+        const tituloManual = document.getElementById("tituloManual");
+        const tituloInfo = document.getElementById("tituloInfo");
 
         // Reinicia el campo de título cada vez que cambia máquina o material
-        titulo.innerHTML = "";
-        manual.value = "";
-        manual.style.display = "none";
-        select.style.display = "inline-block";
-        info.innerHTML = "";
+        tituloSelect.innerHTML = "";
+        tituloSelect.style.display = "inline-block";
+        tituloManual.value = "";
+        tituloManual.style.display = "none";
+        tituloInfo.innerHTML = "";
+        // document.getElementById("rpmConfigurado").innerHTML = "";
         document.getElementById("rpmConfiguradoInfo").innerHTML = "";
         document.getElementById("rpmPromedio").value = "";
         document.getElementById("rpmPromedioInfo").innerHTML = "";
@@ -853,39 +853,40 @@
         rpmPromedioActual = null;
 
         if (maquina === "" || material === "") {
-          select.innerHTML =
+          titulo.innerHTML =
             '<option value="">-- Seleccione máquina y material --</option>';
           return;
         }
 
-        select.innerHTML = '<option value="">Cargando...</option>';
+        tituloSelect.innerHTML = '<option value="">Cargando...</option>';
 
         google.script.run
           .withSuccessHandler(function (titulos) {
-            select.innerHTML = "";
+            tituloSelect.innerHTML = "";
 
             if (titulos.length === 0) {
-              // No hay datos para esa máquina/material: se pasa a ingreso manual
-              select.style.display = "none";
-              manual.style.display = "block";
-              info.style.color = "#b45309";
-              info.innerHTML =
-                "⚠️ Sin datos registrados para esta combinación, ingrese el título manualmente.";
+              // No hay datos para esa máquina/material: se pasa a ingreso tituloManual
+              tituloSelect.style.display = "none";
+              tituloManual.style.display = "block";
+              tituloInfo.style.color = "#b45309";
+              tituloInfo.innerHTML =
+                "Combinación no registrada, ingrese el título manualmente.";
               return;
             }
 
-            select.innerHTML = '<option value="">-- Seleccione --</option>';
+            tituloSelect.innerHTML =
+              '<option value="">-- Seleccione --</option>';
             titulos.forEach(function (t) {
               const opcion = document.createElement("option");
               opcion.value = t;
               opcion.textContent = t;
-              select.appendChild(opcion);
+              tituloSelect.appendChild(opcion);
             });
 
             const otra = document.createElement("option");
             otra.value = "__OTRO__";
-            otra.textContent = "OTRO (ingresar manualmente)";
-            select.appendChild(otra);
+            otra.textContent = "OTRO (ingresar manual)";
+            tituloSelect.appendChild(otra);
           })
           .obtenerTitulos(maquina, material);
       }
@@ -920,7 +921,6 @@
 
       //==================================
       // AUTOCOMPLETAR RPM CONFIGURADO
-      // (desde la hoja "DG RPM CONFI")
       //==================================
       let ultimoRpmAuto = "";
 

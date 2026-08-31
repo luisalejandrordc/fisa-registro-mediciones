@@ -8,6 +8,7 @@
 //----------------------------------
 const NOMBRE_HOJA_REGISTROS = "REGISTRO DE MEDICIONES";
 const NOMBRE_HOJA_REFERENCIA = "RPM DE REFERENCIA";
+const NOMBRE_HOJA_OPERADORES = "OPERADORES";
 
 const POSICION_MINIMA = 1;
 const POSICION_MAXIMA = 40;
@@ -37,16 +38,33 @@ function doGet() {
 // VALIDAR OPERADOR
 //----------------------------------
 /**
- * Valida un código de operador contra la lista registrada.
+ * Valida un código de operador contra la hoja "OPERADORES".
  * @param {string} codigo Código ingresado por el usuario.
  * @return {{valido: boolean, nombre: string}}
  */
 function validarCodigo(codigo) {
   codigo = String(codigo).trim();
 
-  if (OPERADORES[codigo]) {
-    return { valido: true, nombre: OPERADORES[codigo] };
+  const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+    NOMBRE_HOJA_OPERADORES,
+  );
+
+  if (!hoja) return { valido: false, nombre: "" };
+
+  const datos = hoja.getDataRange().getValues();
+
+  for (let i = 1; i < datos.length; i++) {
+    // Starts at 1 for skipping the headings
+    const [codigoFila, apellidos, nombres] = datos[i];
+
+    if (String(codigoFila).trim() === codigo) {
+      const nombreCompleto =
+        String(apellidos || "").trim() + ", " + String(nombres || "").trim();
+
+      return { valido: true, nombre: nombreCompleto };
+    }
   }
+
   return { valido: false, nombre: "" };
 }
 
@@ -221,20 +239,13 @@ function obtenerTitulos(maquina, material) {
 /**
  * Calcula el promedio de RPM Real (solo mediciones de HUSO) registrado
  * en "REGISTRO DE MEDICIONES" para una combinación exacta de
- * máquina + material + título, y lo redondea al múltiplo de 50 más
- * cercano (ej. 2780 -> 2800, 2715 -> 2700, 2760 -> 2750).
+ * máquina + material + título, y lo redondea al múltiplo de 50 más cercano
  * @param {string} maquina
  * @param {string} material
  * @param {string} titulo
  * @return {{encontrado: boolean, promedio?: number, cantidadRegistros?: number}}
  */
 function calcularPromedioRPMReal(maquina, material, titulo) {
-  console.log("Calcular Promedio Real");
-  console.log({
-    maquina: maquina,
-    material: material,
-    titulo: titulo,
-  });
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
     NOMBRE_HOJA_REGISTROS,
   );
@@ -270,13 +281,6 @@ function calcularPromedioRPMReal(maquina, material, titulo) {
     const filaMaterial = String(fila[idx.material]).trim().toUpperCase();
     const filaTitulo = String(Number(fila[idx.titulo]));
     const filaTipo = String(fila[idx.tipo]).trim().toUpperCase();
-
-    console.log({
-      "fila maquina": filaMaquina,
-      "fila material": filaMaterial,
-      "fila titulo": filaTitulo,
-      "fila tipo": filaTipo,
-    });
 
     if (
       filaMaquina !== maquina ||
@@ -459,8 +463,4 @@ function guardarRegistro(datos) {
     .setValues(filas);
 
   return { ok: true, mensaje: "Registro guardado correctamente." };
-}
-
-function testing() {
-  calcularPromedioRPMReal("DONGTAI 1", "NY", "12");
 }
