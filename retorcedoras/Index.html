@@ -4,7 +4,7 @@
     <base target="_top" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>REGISTRO RPM - RETORCEDORAS</title>
+    <title>RETORCEDORAS - REGISTRO RPM</title>
 
     <style>
       * {
@@ -37,7 +37,7 @@
         gap: 20px;
         border-bottom: 3px solid #003b73;
         padding-bottom: 15px;
-        margin-bottom: 25px;
+        margin-bottom: 30px;
       }
 
       .logo {
@@ -49,7 +49,7 @@
       }
 
       .titulo h1 {
-        font-size: 34px;
+        font-size: 30px;
         color: #003b73;
         margin-bottom: 5px;
       }
@@ -69,25 +69,42 @@
       /*==========================
       FILAS
       ==========================*/
-      .fila2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 18px;
-        margin-bottom: 18px;
-      }
-
-      .fila3 {
+      .rows-container {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        gap: 18px;
-        margin-bottom: 18px;
+        column-gap: 18px;
+        row-gap: 18px;
       }
 
-      .fila4 {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        gap: 14px;
-        margin-bottom: 18px;
+      .row {
+        display: contents;
+      }
+
+      .row1 > div:first-child {
+        grid-column: 1;
+      }
+      .row1 > div:last-child {
+        grid-column: 2 / 4; /* between grid lines 2 and 4*/
+      }
+
+      .row2 > div:nth-child(1) {
+        grid-column: 1;
+      }
+      .row2 > div:nth-child(2) {
+        grid-column: 2;
+      }
+      .row2 > div:nth-child(3) {
+        grid-column: 3;
+      }
+
+      .row3 > div:nth-child(1) {
+        grid-column: 1;
+      }
+      .row3 > div:nth-child(2) {
+        grid-column: 2;
+      }
+      .row3 > div:nth-child(3) {
+        grid-column: 3;
       }
 
       /*==========================
@@ -97,10 +114,6 @@
         display: block;
         margin-bottom: 6px;
         font-weight: bold;
-      }
-
-      .requerido {
-        color: #d00000;
       }
 
       input,
@@ -116,6 +129,42 @@
       select:focus {
         outline: none;
         border: 2px solid #003b73;
+      }
+
+      input[readonly] {
+        background: #f3f5f8;
+        color: #333;
+        cursor: not-allowed;
+      }
+
+      .statusMessage {
+        margin-top: 6px;
+        margin-left: 2px;
+        font-size: 13px;
+        font-weight: bold;
+        min-height: 18px;
+      }
+
+      .statusMessage:empty {
+        display: none;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: -2px;
+        margin-right: 4px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
 
       .campo-calculado {
@@ -138,13 +187,6 @@
         display: none;
       }
 
-      .nombreOperador {
-        margin-top: 8px;
-        font-weight: bold;
-        color: #198754;
-        min-height: 24px;
-      }
-
       /*==========================
       AVISO
       ==========================*/
@@ -155,7 +197,7 @@
         border-radius: 8px;
         text-align: center;
         color: white;
-        font-size: 18px;
+        font-size: 17px;
         font-weight: bold;
       }
 
@@ -192,6 +234,7 @@
       td {
         border: 1px solid #ddd;
         padding: 6px;
+        vertical-align: center;
       }
 
       td input {
@@ -239,6 +282,10 @@
       ESTADO RPM
       ==========================*/
       .estado {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
         font-weight: bold;
         text-align: center;
         border-radius: 5px;
@@ -259,14 +306,14 @@
       TIPO DE MEDICIÓN
       ==========================*/
       .badge-tipo {
-        display: inline-block;
-        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 12px;
+        font-weight: bold;
         text-align: center;
         border-radius: 5px;
         padding: 6px 4px;
-        width: 100%;
-        box-sizing: border-box;
       }
 
       .badge-huso {
@@ -339,7 +386,7 @@
           alt="Logo"
         />
         <div class="titulo">
-          <h1>REGISTRO RPM - RETORCEDORAS</h1>
+          <h1>RETORCEDORAS - REGISTRO RPM</h1>
           <p>Fibras Industriales S.A.</p>
         </div>
         <div class="fechaHora">
@@ -351,114 +398,104 @@
       <!-- =========================
          DATOS GENERALES
       ========================== -->
-      <div class="fila2">
-        <div>
-          <label> Código del operador <span class="requerido">*</span> </label>
-          <input
-            type="text"
-            id="codigo"
-            maxlength="5"
-            placeholder="Ingrese código"
-          />
-          <div id="nombreOperador" class="nombreOperador"></div>
-        </div>
-        <div>
-          <label>Fecha</label>
-          <input type="text" id="fechaActual" readonly />
-        </div>
-      </div>
-
-      <div class="fila3">
-        <div>
-          <label> Máquina <span class="requerido">*</span> </label>
-          <select id="maquina">
-            <option value="">-- Seleccione --</option>
-            <option>DONGTAI 1</option>
-            <option>DONGTAI 2</option>
-            <option>DONGTAI 3</option>
-            <option>DONGTAI 4</option>
-            <option>DONGTAI 5</option>
-            <option>DONGTAI 6</option>
-            <option>DONGTAI 7</option>
-            <option>GALAN 1</option>
-            <option>GALAN 2</option>
-          </select>
+      <div class="rows-container">
+        <div class="row row1">
+          <div>
+            <label> Código del operador </label>
+            <input
+              type="text"
+              id="codigo"
+              maxlength="5"
+              placeholder="Ingrese código"
+            />
+            <div id="operadorStatus" class="statusMessage"></div>
+          </div>
+          <div>
+            <label> Apellidos y nombres </label>
+            <input type="text" id="nombreOperador" readonly />
+          </div>
         </div>
 
-        <div>
-          <label> Material <span class="requerido">*</span> </label>
-          <select id="material">
-            <option value="">-- Seleccione --</option>
-            <option>NY</option>
-            <option>PES</option>
-            <option>CHYNEEMA</option>
-            <option>HYBRIDO</option>
-            <option>PE</option>
-            <option>DYNEEMA</option>
-          </select>
+        <div class="row row2">
+          <div>
+            <label> Máquina </label>
+            <select id="maquina">
+              <option value="">-- Seleccione --</option>
+              <option>DONGTAI 1</option>
+              <option>DONGTAI 2</option>
+              <option>DONGTAI 3</option>
+              <option>DONGTAI 4</option>
+              <option>DONGTAI 5</option>
+              <option>DONGTAI 6</option>
+              <option>DONGTAI 7</option>
+              <option>GALAN 1</option>
+              <option>GALAN 2</option>
+            </select>
+          </div>
+
+          <div>
+            <label> Material </label>
+            <select id="material">
+              <option value="">-- Seleccione --</option>
+              <option>NY</option>
+              <option>PES</option>
+              <option>CHYNEEMA</option>
+              <option>HYBRIDO</option>
+              <option>PE</option>
+              <option>DYNEEMA</option>
+            </select>
+          </div>
+
+          <div>
+            <label> Título </label>
+            <select id="tituloSelect">
+              <option value="">-- Seleccione máquina y material --</option>
+            </select>
+            <input
+              type="text"
+              id="tituloManual"
+              placeholder="Ingrese el título"
+              style="display: none; margin-top: 6px; text-transform: uppercase"
+              oninput="this.value = this.value.toUpperCase()"
+            />
+            <div
+              id="tituloInfo"
+              class="nombreOperador"
+              style="min-height: 18px; font-size: 13px"
+            ></div>
+          </div>
         </div>
 
-        <div>
-          <label> Título <span class="requerido">*</span> </label>
-          <select id="tituloSelect">
-            <option value="">-- Seleccione máquina y material --</option>
-          </select>
-          <input
-            type="text"
-            id="tituloManual"
-            placeholder="Ingrese el título"
-            style="display: none; margin-top: 6px; text-transform: uppercase"
-            oninput="this.value = this.value.toUpperCase()"
-          />
-          <div
-            id="tituloInfo"
-            class="nombreOperador"
-            style="min-height: 18px; font-size: 13px"
-          ></div>
-        </div>
-      </div>
+        <div class="row row3">
+          <div>
+            <label> RPM CONFIGURADO </label>
+            <input type="number" id="rpmConfigurado" placeholder="Ej.: 12000" />
+            <div
+              id="rpmConfiguradoInfo"
+              class="nombreOperador"
+              style="min-height: 16px; font-size: 12px"
+            ></div>
+          </div>
 
-      <div class="fila3">
-        <div>
-          <label> RPM CONFIGURADO <span class="requerido">*</span> </label>
-          <input type="number" id="rpmConfigurado" placeholder="Ej.: 12000" />
-          <div
-            id="rpmConfiguradoInfo"
-            class="nombreOperador"
-            style="min-height: 16px; font-size: 12px"
-          ></div>
-        </div>
+          <div>
+            <label> RPM PROMEDIO </label>
+            <input type="text" id="rpmPromedio" readonly placeholder="—" />
+            <div
+              id="rpmPromedioInfo"
+              class="nombreOperador"
+              style="min-height: 16px; font-size: 12px; color: #555"
+            ></div>
+          </div>
 
-        <div>
-          <label> RPM PROMEDIO </label>
-          <input
-            type="text"
-            id="rpmPromedio"
-            class="campo-calculado"
-            readonly
-            placeholder="—"
-          />
-          <div
-            id="rpmPromedioInfo"
-            class="nombreOperador"
-            style="min-height: 16px; font-size: 12px; color: #555"
-          ></div>
-        </div>
-
-        <div>
-          <label> RANGO ACEPTABLE </label>
-          <input
-            type="text"
-            id="rangoAceptable"
-            class="campo-calculado"
-            readonly
-            placeholder="—"
-          />
-          <div
-            id="rangoAceptableInfo"
-            class="nombreOperador"
-            style="min-height: 16px; font-size: 12px"
-          ></div>
+          <div>
+            <label> RANGO ACEPTABLE </label>
+            <input type="text" id="rangoAceptable" readonly placeholder="—" />
+            <div
+              id="rangoAceptableInfo"
+              class="nombreOperador"
+              style="min-height: 16px; font-size: 12px"
+            ></div>
+          </div>
         </div>
       </div>
 
@@ -481,11 +518,11 @@
         <table id="tablaRPM">
           <thead>
             <tr>
-              <th style="width: 6%">LADO</th>
-              <th style="width: 12%">TIPO</th>
+              <th style="width: 6%; border-left: 1px solid #003b73">LADO</th>
+              <th style="width: 13%">TIPO</th>
               <th style="width: 13%">POSICIÓN</th>
               <th style="width: 13%">RPM REAL</th>
-              <th style="width: 16%">ESTADO RPM</th>
+              <th style="width: 13%">ESTADO RPM</th>
               <th>OBSERVACIÓN</th>
             </tr>
           </thead>
