@@ -4,7 +4,7 @@
     <base target="_top" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>REGISTRO CRUCES - TRENZADORAS</title>
+    <title>TRENZADORAS - REGISTRO CRUCES</title>
 
     <style>
       * {
@@ -301,7 +301,7 @@
           alt="Logo"
         />
         <div class="titulo">
-          <h1>REGISTRO CRUCES - TRENZADORAS</h1>
+          <h1>TRENZADORAS - REGISTRO CRUCES</h1>
           <p>Fibras Industriales S.A.</p>
         </div>
         <div class="fechaHora">
@@ -364,10 +364,12 @@
         STD
         <span
           >Selecciona 3 trenzadoras que estén trabajando el mismo material y
-          título (pueden ser de la misma fila, pero no la misma máquina). Si
-          eliges la fila DRIZA solo se mostrarán sus 2 máquinas y bastará con
-          registrar 1 o ambas.</span
-        >
+          título (pueden ser de la misma fila, pero no la misma máquina).
+        </span>
+        <span
+          >Si eliges la fila DRIZA solo se mostrarán sus 2 máquinas y bastará
+          con registrar 1 o ambas.
+        </span>
       </div>
 
       <!-- =========================================
@@ -528,11 +530,8 @@
         }
       }, 1000);
 
-      // document.getElementById("fechaActual").value =
-      //   new Date().toLocaleDateString("es-PE");
-
       //==================================
-      // VALIDAR OPERADOR (SUPERVISOR)
+      // VALIDAR SUPERVISOR
       //==================================
       document.getElementById("codigo").addEventListener("input", function () {
         const codigo = this.value.trim();
@@ -691,13 +690,13 @@
           const filaTabla = select.closest("tr");
           cargarNumerosDisponibles(filaTabla);
           actualizarModoDriza();
-          validarFilasRepetidas();
+          validarFilas();
         });
       });
 
       document.querySelectorAll(".numeroSelect").forEach(function (select) {
         select.addEventListener("change", function () {
-          validarFilasRepetidas();
+          validarFilas();
         });
       });
 
@@ -739,15 +738,24 @@
       }
 
       //==================================
-      // VALIDAR MÁQUINAS REPETIDAS
-      // (las mediciones pueden ser de la
-      // misma fila, pero no de la misma
-      // máquina exacta: Fila + Número)
+      // VALIDAR FILAS
+      // (1. no se puede repetir la misma
+      // máquina: Fila + Número
+      // 2. si alguna medición es de la
+      // fila DRIZA, las demás también
+      // deben serlo, ya que esa fila
+      // implica el producto CABO, que
+      // solo se fabrica ahí)
       //==================================
-      function validarFilasRepetidas() {
+      function validarFilas() {
         const filasTabla = Array.from(
           document.querySelectorAll("#tablaCruces tbody tr"),
         ).filter((tr) => tr.style.display !== "none");
+
+        const valoresFila = filasTabla.map(
+          (filaTabla) => filaTabla.querySelector(".filaSelect").value,
+        );
+        const modoDriza = valoresFila.includes(FILA_DRIZA);
 
         const claves = filasTabla.map(function (filaTabla) {
           const fila = filaTabla.querySelector(".filaSelect").value;
@@ -760,17 +768,30 @@
           (v, i) => clavesLlenas.indexOf(v) !== i,
         );
 
-        let hayRepetidos = false;
+        let esValido = true;
 
         filasTabla.forEach(function (filaTabla, i) {
           const mensaje = filaTabla.querySelector(".errorFila");
+          const fila = valoresFila[i];
           const esRepetido =
             claves[i] !== null && repetidas.includes(claves[i]);
-          mensaje.style.display = esRepetido ? "block" : "none";
-          if (esRepetido) hayRepetidos = true;
+          const esFilaInvalidaPorDriza =
+            modoDriza && fila !== "" && fila !== FILA_DRIZA;
+
+          if (esRepetido) {
+            mensaje.textContent = "Máquina repetida";
+            mensaje.style.display = "block";
+            esValido = false;
+          } else if (esFilaInvalidaPorDriza) {
+            mensaje.textContent = "Debe ser fila " + FILA_DRIZA;
+            mensaje.style.display = "block";
+            esValido = false;
+          } else {
+            mensaje.style.display = "none";
+          }
         });
 
-        return !hayRepetidos;
+        return esValido;
       }
 
       //==================================
@@ -914,6 +935,9 @@
 
         if (modoDriza) {
           if (completos.length < 1 || completos.length > 2) return false;
+          // Si es modo DRIZA, TODAS las mediciones completas deben
+          // ser de esa fila (no se puede mezclar con otras filas)
+          if (!completos.every((r) => r.fila === FILA_DRIZA)) return false;
         } else {
           if (completos.length !== CANTIDAD_MEDICIONES) return false;
         }
@@ -932,9 +956,11 @@
 
         const registros = obtenerRegistros();
 
-        if (!validarFilasRepetidas()) {
+        if (!validarFilas()) {
           alert(
-            "No se puede repetir la misma máquina (Fila + Número). Pueden ser de la misma fila, pero no la misma trenzadora.",
+            "Revise las mediciones marcadas: no se puede repetir la misma máquina (Fila + Número), y si alguna es de la fila " +
+              FILA_DRIZA +
+              ", las demás también deben serlo.",
           );
           return;
         }
