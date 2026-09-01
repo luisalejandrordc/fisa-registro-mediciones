@@ -255,34 +255,72 @@ function calcularEstadoCruce(cruceReal, crucesSTD) {
 // VALIDAR REGISTROS
 //----------------------------------
 /**
- * Valida, en el servidor, que se hayan enviado exactamente
- * CANTIDAD_MEDICIONES registros, de filas todas diferentes, y con
- * fila, número y cruce real completos. Es una segunda capa de
- * validación además de la del formulario.
+ * Fila especial cuyo producto (CABO) solo puede fabricarse en sus
+ * máquinas. Esa fila solo tiene 2 trenzadoras, por lo que se acepta
+ * registrar 1 o 2 mediciones en vez de las 3 habituales.
+ */
+const FILA_DRIZA = "DRIZA";
+
+/**
+ * Valida, en el servidor, que se hayan enviado registros completos
+ * (fila, número y cruce real) y que ninguna máquina (combinación
+ * Fila + Número) esté repetida. Es una segunda capa de validación
+ * además de la del formulario.
+ *
+ * Cantidad exigida:
+ * - Si alguna medición es de la fila DRIZA: se aceptan 1 o 2
+ *   registros (esa fila solo tiene 2 máquinas).
+ * - En cualquier otro caso: se exigen exactamente
+ *   CANTIDAD_MEDICIONES registros.
+ *
+ * Las filas SÍ pueden repetirse entre mediciones (dos o tres
+ * mediciones pueden ser de la misma fila); lo que no puede
+ * repetirse es la máquina exacta (Fila + Número).
  * @param {Array<{fila: string, numero: string, cruceReal: string|number}>} registros
  * @return {boolean}
  */
 function registrosValidos(registros) {
-  if (!Array.isArray(registros) || registros.length !== CANTIDAD_MEDICIONES) {
-    return false;
-  }
+  if (!Array.isArray(registros) || registros.length === 0) return false;
+  if (registros.length > CANTIDAD_MEDICIONES) return false;
 
-  const filasUsadas = new Set(
-    registros.map((r) => String(r.fila).trim().toUpperCase()),
-  );
+  const normalizados = registros.map((r) => ({
+    fila: String(r.fila || "")
+      .trim()
+      .toUpperCase(),
+    numero: String(r.numero || "")
+      .trim()
+      .toUpperCase(),
+    cruceReal: r.cruceReal,
+  }));
 
-  // Las 3 mediciones deben ser de filas diferentes
-  if (filasUsadas.size !== CANTIDAD_MEDICIONES) return false;
-
-  return registros.every(
+  // Fila, Número y Cruce Real deben estar completos en cada registro
+  const completos = normalizados.every(
     (r) =>
-      String(r.fila || "").trim() !== "" &&
-      String(r.numero || "").trim() !== "" &&
+      r.fila !== "" &&
+      r.numero !== "" &&
       r.cruceReal !== "" &&
       r.cruceReal !== null &&
       r.cruceReal !== undefined &&
       !isNaN(Number(r.cruceReal)),
   );
+  if (!completos) return false;
+
+  const esModoDriza = normalizados.some((r) => r.fila === FILA_DRIZA);
+
+  if (esModoDriza) {
+    // La fila DRIZA solo tiene 2 máquinas: se acepta 1 o 2 mediciones
+    if (normalizados.length < 1 || normalizados.length > 2) return false;
+  } else {
+    // Para el resto de filas se exigen exactamente CANTIDAD_MEDICIONES
+    if (normalizados.length !== CANTIDAD_MEDICIONES) return false;
+  }
+
+  // No se puede repetir la misma máquina (Fila + Número), aunque
+  // sí se pueden repetir filas entre sí.
+  const claves = normalizados.map((r) => r.fila + "|" + r.numero);
+  if (new Set(claves).size !== claves.length) return false;
+
+  return true;
 }
 
 //----------------------------------
@@ -323,7 +361,9 @@ function guardarRegistro(datos) {
       mensaje:
         "Debe registrar " +
         CANTIDAD_MEDICIONES +
-        " trenzadoras de filas diferentes, con Fila, N° Trenzadora y Cruce Real completos.",
+        " trenzadoras (o 1-2 si son de la fila " +
+        FILA_DRIZA +
+        "), con Fila, N° Trenzadora y Cruce Real completos, sin repetir la misma máquina (Fila + Número).",
     };
   }
 

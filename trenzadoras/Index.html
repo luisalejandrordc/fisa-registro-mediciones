@@ -363,8 +363,10 @@
         REGISTRA LA OT Y CARGARÁ EN AUTOMÁTICO EL NOMBRE DEL PRODUCTO Y CRUCES
         STD
         <span
-          >Selecciona 3 trenzadoras de filas diferentes que estén trabajando el
-          mismo material y título.</span
+          >Selecciona 3 trenzadoras que estén trabajando el mismo material y
+          título (pueden ser de la misma fila, pero no la misma máquina). Si
+          eliges la fila DRIZA solo se mostrarán sus 2 máquinas y bastará con
+          registrar 1 o ambas.</span
         >
       </div>
 
@@ -389,7 +391,7 @@
                 <select class="filaSelect">
                   <option value="">Cargando...</option>
                 </select>
-                <div class="errorFila">Fila repetida</div>
+                <div class="errorFila">Máquina repetida</div>
               </td>
               <td>
                 <select class="numeroSelect" disabled>
@@ -412,7 +414,7 @@
                 <select class="filaSelect">
                   <option value="">Cargando...</option>
                 </select>
-                <div class="errorFila">Fila repetida</div>
+                <div class="errorFila">Máquina repetida</div>
               </td>
               <td>
                 <select class="numeroSelect" disabled>
@@ -435,7 +437,7 @@
                 <select class="filaSelect">
                   <option value="">Cargando...</option>
                 </select>
-                <div class="errorFila">Fila repetida</div>
+                <div class="errorFila">Máquina repetida</div>
               </td>
               <td>
                 <select class="numeroSelect" disabled>
@@ -476,6 +478,7 @@
       //==================================
       const CANTIDAD_MEDICIONES = 3;
       const MARGEN_TOLERANCIA_CRUCE = 0.05; // ±5%
+      const FILA_DRIZA = "DRIZA"; // Solo tiene 2 máquinas; admite 1 o 2 mediciones
 
       let codigoActual = "";
       let nombreActual = "";
@@ -687,29 +690,82 @@
         select.addEventListener("change", function () {
           const filaTabla = select.closest("tr");
           cargarNumerosDisponibles(filaTabla);
+          actualizarModoDriza();
+          validarFilasRepetidas();
+        });
+      });
+
+      document.querySelectorAll(".numeroSelect").forEach(function (select) {
+        select.addEventListener("change", function () {
           validarFilasRepetidas();
         });
       });
 
       //==================================
-      // VALIDAR FILAS REPETIDAS
-      // (las 3 mediciones deben ser de
-      // filas diferentes)
+      // MODO FILA DRIZA
+      // (solo tiene 2 máquinas: si alguna
+      // medición es de esta fila, se oculta
+      // el 3er registro y deja de ser
+      // obligatorio llenar ambos)
+      //==================================
+      function actualizarModoDriza() {
+        const filas = Array.from(document.querySelectorAll(".filaSelect")).map(
+          (s) => s.value,
+        );
+        const modoDriza = filas.includes(FILA_DRIZA);
+
+        const filasTabla = document.querySelectorAll("#tablaCruces tbody tr");
+        const terceraFila = filasTabla[filasTabla.length - 1];
+
+        if (modoDriza) {
+          terceraFila.style.display = "none";
+          // Limpia el 3er registro para que no se envíe con datos viejos
+          terceraFila.querySelector(".filaSelect").value = "";
+          terceraFila.querySelector(".numeroSelect").innerHTML =
+            '<option value="">-- Seleccione fila --</option>';
+          terceraFila.querySelector(".numeroSelect").disabled = true;
+          terceraFila.querySelector(".cruceReal").value = "";
+          terceraFila.querySelector(".observacion").value = "";
+          terceraFila.querySelector(".errorFila").style.display = "none";
+          const estado = terceraFila.querySelector(".estado");
+          estado.innerHTML = "";
+          estado.className = "estado";
+          delete estado.dataset.estado;
+        } else {
+          terceraFila.style.display = "";
+        }
+
+        return modoDriza;
+      }
+
+      //==================================
+      // VALIDAR MÁQUINAS REPETIDAS
+      // (las mediciones pueden ser de la
+      // misma fila, pero no de la misma
+      // máquina exacta: Fila + Número)
       //==================================
       function validarFilasRepetidas() {
-        const selects = document.querySelectorAll(".filaSelect");
-        const valores = Array.from(selects)
-          .map((s) => s.value)
-          .filter((v) => v !== "");
+        const filasTabla = Array.from(
+          document.querySelectorAll("#tablaCruces tbody tr"),
+        ).filter((tr) => tr.style.display !== "none");
 
-        const repetidos = valores.filter((v, i) => valores.indexOf(v) !== i);
+        const claves = filasTabla.map(function (filaTabla) {
+          const fila = filaTabla.querySelector(".filaSelect").value;
+          const numero = filaTabla.querySelector(".numeroSelect").value;
+          return fila !== "" && numero !== "" ? fila + "|" + numero : null;
+        });
+
+        const clavesLlenas = claves.filter((v) => v !== null);
+        const repetidas = clavesLlenas.filter(
+          (v, i) => clavesLlenas.indexOf(v) !== i,
+        );
 
         let hayRepetidos = false;
 
-        selects.forEach(function (select) {
-          const mensaje = select.closest("td").querySelector(".errorFila");
+        filasTabla.forEach(function (filaTabla, i) {
+          const mensaje = filaTabla.querySelector(".errorFila");
           const esRepetido =
-            select.value !== "" && repetidos.includes(select.value);
+            claves[i] !== null && repetidas.includes(claves[i]);
           mensaje.style.display = esRepetido ? "block" : "none";
           if (esRepetido) hayRepetidos = true;
         });
@@ -808,6 +864,9 @@
         document
           .querySelectorAll("#tablaCruces tbody tr")
           .forEach(function (filaTabla) {
+            // Omite la 3ra medición si está oculta (modo fila DRIZA)
+            if (filaTabla.style.display === "none") return;
+
             const fila = filaTabla.querySelector(".filaSelect").value;
             const numero = filaTabla.querySelector(".numeroSelect").value;
             const cruceReal = filaTabla
@@ -829,17 +888,38 @@
       }
 
       /**
-       * Valida que las 3 mediciones tengan fila, número y cruce real
-       * completos, y que las 3 filas sean diferentes entre sí.
+       * Devuelve solo los registros con fila, número y cruce real
+       * completos (descarta filas vacías, por ejemplo la 2da
+       * medición sin llenar en modo fila DRIZA).
        */
-      function registrosCompletosYValidos(registros) {
-        const completos = registros.every(
+      function registrosCompletos(registros) {
+        return registros.filter(
           (r) => r.fila !== "" && r.numero !== "" && r.cruceReal !== "",
         );
-        if (!completos) return false;
+      }
 
-        const filasUsadas = new Set(registros.map((r) => r.fila));
-        return filasUsadas.size === CANTIDAD_MEDICIONES;
+      /**
+       * Valida la cantidad y unicidad de las mediciones completas:
+       * - Si alguna es de la fila DRIZA (que solo tiene 2 máquinas),
+       *   basta con 1 o 2 mediciones completas.
+       * - En cualquier otro caso, se exigen las 3 mediciones
+       *   completas.
+       * Las filas pueden repetirse; lo que no puede repetirse es la
+       * máquina exacta (Fila + Número).
+       */
+      function registrosCompletosYValidos(registros) {
+        const completos = registrosCompletos(registros);
+
+        const modoDriza = completos.some((r) => r.fila === FILA_DRIZA);
+
+        if (modoDriza) {
+          if (completos.length < 1 || completos.length > 2) return false;
+        } else {
+          if (completos.length !== CANTIDAD_MEDICIONES) return false;
+        }
+
+        const claves = completos.map((r) => r.fila + "|" + r.numero);
+        return new Set(claves).size === claves.length;
       }
 
       //==================================
@@ -853,15 +933,19 @@
         const registros = obtenerRegistros();
 
         if (!validarFilasRepetidas()) {
-          alert("Las 3 trenzadoras deben ser de filas diferentes.");
+          alert(
+            "No se puede repetir la misma máquina (Fila + Número). Pueden ser de la misma fila, pero no la misma trenzadora.",
+          );
           return;
         }
 
         if (!registrosCompletosYValidos(registros)) {
           alert(
-            "Complete Fila, N° Trenzadora y Cruce Real en las " +
+            "Complete Fila, N° Trenzadora y Cruce Real en " +
               CANTIDAD_MEDICIONES +
-              " mediciones, con filas diferentes entre sí.",
+              " mediciones (o en 1-2 si son de la fila " +
+              FILA_DRIZA +
+              "), sin repetir la misma máquina.",
           );
           return;
         }
@@ -883,7 +967,7 @@
             ordenTrabajo: document.getElementById("ordenTrabajo").value.trim(),
             nombreProducto: nombreProductoActual,
             crucesSTD: crucesSTDActual,
-            registros: registros,
+            registros: registrosCompletos(registros),
           });
       });
 
@@ -908,6 +992,7 @@
         document
           .querySelectorAll("#tablaCruces tbody tr")
           .forEach(function (filaTabla) {
+            filaTabla.style.display = "";
             filaTabla.querySelector(".filaSelect").value = "";
             filaTabla.querySelector(".numeroSelect").innerHTML =
               '<option value="">-- Seleccione fila --</option>';
