@@ -269,7 +269,9 @@ const FILA_DRIZA = "DRIZA";
  *
  * Cantidad exigida:
  * - Si alguna medición es de la fila DRIZA: se aceptan 1 o 2
- *   registros (esa fila solo tiene 2 máquinas).
+ *   registros (esa fila solo tiene 2 máquinas), y TODOS los
+ *   registros deben ser de esa fila (no se mezcla con otras, ya
+ *   que DRIZA implica el producto CABO).
  * - En cualquier otro caso: se exigen exactamente
  *   CANTIDAD_MEDICIONES registros.
  *
@@ -310,6 +312,9 @@ function registrosValidos(registros) {
   if (esModoDriza) {
     // La fila DRIZA solo tiene 2 máquinas: se acepta 1 o 2 mediciones
     if (normalizados.length < 1 || normalizados.length > 2) return false;
+    // No se puede mezclar DRIZA con otra fila: si una medición es de
+    // DRIZA (producto CABO), todas deben serlo
+    if (!normalizados.every((r) => r.fila === FILA_DRIZA)) return false;
   } else {
     // Para el resto de filas se exigen exactamente CANTIDAD_MEDICIONES
     if (normalizados.length !== CANTIDAD_MEDICIONES) return false;
